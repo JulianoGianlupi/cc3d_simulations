@@ -1,0 +1,57 @@
+<CompuCell3D Revision="20171208" Version="3.7.7">
+   
+   <Potts>
+      
+      <!-- Basic properties of CPM (GGH) algorithm -->
+      <Dimensions x="100" y="100" z="1"/>
+      <Steps>100000</Steps>
+      <Temperature>10.0</Temperature>
+      <NeighborOrder>1</NeighborOrder>
+   </Potts>
+   
+   <Plugin Name="CellType">
+      
+      <!-- Listing all cell types in the simulation -->
+      <CellType TypeId="0" TypeName="Medium"/>
+      <CellType TypeId="1" TypeName="cell1"/>
+      <CellType TypeId="2" TypeName="cell2"/>
+   </Plugin>
+   
+   <Plugin Name="Volume">
+      <VolumeEnergyParameters CellType="cell1" LambdaVolume="2.0" TargetVolume="25"/>
+      <VolumeEnergyParameters CellType="cell2" LambdaVolume="2.0" TargetVolume="25"/>
+   </Plugin>
+   
+   <Plugin Name="Pressure">
+      <PressureEnergyParameters CellType="cell1" LambdaPressure="2.0" Pressure="25"/>
+      <PressureEnergyParameters CellType="cell2" LambdaPressure="2.0" Pressure="25"/>
+   </Plugin>
+   
+   <Plugin Name="CenterOfMass">
+      
+      <!-- Module tracking center of mass of each cell -->
+   </Plugin>
+   
+   <Plugin Name="Contact">
+      <!-- Specification of adhesion energies -->
+      <Energy Type1="Medium" Type2="Medium">10.0</Energy>
+      <Energy Type1="Medium" Type2="cell1">10.0</Energy>
+      <Energy Type1="Medium" Type2="cell2">10.0</Energy>
+      <Energy Type1="cell1" Type2="cell1">10.0</Energy>
+      <Energy Type1="cell1" Type2="cell2">10.0</Energy>
+      <Energy Type1="cell2" Type2="cell2">10.0</Energy>
+      <NeighborOrder>1</NeighborOrder>
+   </Plugin>
+   
+   <Steppable Type="BlobInitializer">
+      
+      <!-- Initial layout of cells in the form of spherical (circular in 2D) blob -->
+      <Region>
+         <Center x="50" y="50" z="0"/>
+         <Radius>20</Radius>
+         <Gap>0</Gap>
+         <Width>5</Width>
+         <Types>cell1,cell2</Types>
+      </Region>
+   </Steppable>
+</CompuCell3D>
