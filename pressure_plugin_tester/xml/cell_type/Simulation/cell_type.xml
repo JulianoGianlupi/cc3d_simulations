@@ -22,10 +22,10 @@
       <VolumeEnergyParameters CellType="cell2" LambdaVolume="2.0" TargetVolume="25"/>
    </Plugin>
    
-   <Plugin Name="Pressure">
-      <PressureEnergyParameters CellType="cell1" LambdaPressure="2.0" Pressure="25"/>
-      <PressureEnergyParameters CellType="cell2" LambdaPressure="2.0" Pressure="25"/>
-   </Plugin>
+<!--    <Plugin Name="Pressure"> -->
+<!--       <PressureEnergyParameters CellType="cell1" LambdaPressure="2.0" Pressure="25"/> -->
+<!--       <PressureEnergyParameters CellType="cell2" LambdaPressure="2.0" Pressure="25"/> -->
+<!--    </Plugin> -->
    
    <Plugin Name="CenterOfMass">
       
