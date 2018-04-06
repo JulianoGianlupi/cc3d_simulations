@@ -1,0 +1,39 @@
+<CompuCell3D Revision="20171208" Version="3.7.7">
+   
+   <Potts>
+      
+      <!-- Basic properties of CPM (GGH) algorithm -->
+      <Dimensions x="100" y="100" z="1"/>
+      <Steps>1000</Steps>
+      <Temperature>10.0</Temperature>
+      <NeighborOrder>1</NeighborOrder>
+   </Potts>
+   
+   <Plugin Name="CellType">
+      
+      <!-- Listing all cell types in the simulation -->
+      <CellType TypeId="0" TypeName="Medium"/>
+      <CellType TypeId="1" TypeName="cell"/>
+   </Plugin>
+   
+   <Plugin Name="Volume"/>
+   
+   <Plugin Name="Pressure"/>
+   
+   <Plugin Name="CenterOfMass">
+      
+      <!-- Module tracking center of mass of each cell -->
+   </Plugin>
+   
+   <Steppable Type="BlobInitializer">
+      
+      <!-- Initial layout of cells in the form of spherical (circular in 2D) blob -->
+      <Region>
+         <Center x="50" y="50" z="0"/>
+         <Radius>20</Radius>
+         <Gap>0</Gap>
+         <Width>5</Width>
+         <Types>cell</Types>
+      </Region>
+   </Steppable>
+</CompuCell3D>

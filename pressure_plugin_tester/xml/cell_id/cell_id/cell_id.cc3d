@@ -1,0 +1,5 @@
+<Simulation version="3.6.2">
+   <XMLScript Type="XMLScript">Simulation/cell_id.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/cell_id.py</PythonScript>
+   <Resource Type="Python">Simulation/cell_idSteppables.py</Resource>
+</Simulation>
