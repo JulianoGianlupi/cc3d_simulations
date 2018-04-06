@@ -21,7 +21,10 @@
       <VolumeEnergyParameters CellType="cell1" LambdaVolume="2.0" TargetVolume="25"/>
       <VolumeEnergyParameters CellType="cell2" LambdaVolume="2.0" TargetVolume="25"/>
    </Plugin>
-   
+   <Plugin Name="Pressure">
+		<Pressure>25</Pressure>
+		<LambdaPressure>2.0</LambdaPressure>
+   </Plugin>
    
    
    <Plugin Name="Contact">
