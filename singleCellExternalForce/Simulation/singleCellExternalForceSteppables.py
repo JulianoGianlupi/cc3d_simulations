@@ -54,6 +54,15 @@ class singleCellExternalForceSteppable(SteppableBasePy):
             cell.lambdaVecX = self.forceModulus*np.cos(self.forceTheta) 
             cell.lambdaVecY = self.forceModulus*np.sin(self.forceTheta) 
             #cell.lambdaVecZ = 0.0  
+        #opening files
+        
+        fileDir = os.path.dirname(os.path.abspath(__file__))
+        
+        centerOfMassFileName = fileDir+'comData'
+        centerOfMassFile = open(centerOfMassFileName,'w')
+        
+        velocityFileName = fileDir+'velocityData'
+        self.velocityFile = open(velocityFileName,'w')
 #
     def step(self,mcs):        
         #type here the code that will run every _frequency MCS
@@ -64,14 +73,16 @@ class singleCellExternalForceSteppable(SteppableBasePy):
                 dx = cell.xCOM - self.centerMassX[-5]
                 dy = cell.yCOM - self.centerMassY[-5]
                 cell.dict['angle'] = np.angle(complex(dx,dy))
-                self.pWAngle.addDataPoint('Angle (rad)', mcs, cell.dict['angle'])
+            
             cm = np.sqrt( cell.xCOM*cell.xCOM + cell.yCOM*cell.yCOM)
             self.centerMassX.append(cell.xCOM)
             self.centerMassY.append(cell.yCOM)
             self.centerMass.append(cm)
-            self.pWCM.addDataPoint("Center of Mass X", mcs, cell.xCOM)
-            self.pWCM.addDataPoint("Center of Mass Y", mcs, cell.yCOM)
-            self.pWCM.addDataPoint("Center of Mass", mcs, cm)
+            if mcs%5 == 0:
+                self.pWCM.addDataPoint("Center of Mass X", mcs, cell.xCOM)
+                self.pWCM.addDataPoint("Center of Mass Y", mcs, cell.yCOM)
+                self.pWCM.addDataPoint("Center of Mass", mcs, cm)
+                self.pWAngle.addDataPoint('Angle (rad)', mcs, cell.dict['angle'])
             
         
         if len(self.centerMass) > 5:
