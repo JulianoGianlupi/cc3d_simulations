@@ -1,0 +1,87 @@
+<CompuCell3D Revision="20171208" Version="3.7.7">
+   
+   <Potts>
+      
+      <!-- Basic properties of CPM (GGH) algorithm -->
+      <Dimensions x="400" y="50" z="1"/>
+      <Steps>1000000000</Steps>
+      <Temperature>10.0</Temperature>
+      <NeighborOrder>3</NeighborOrder>
+<!--       <Boundary_x>Periodic</Boundary_x> -->
+      <Boundary_y>Periodic</Boundary_y>
+   </Potts>
+   
+   <Plugin Name="CellType">
+      
+      <!-- Listing all cell types in the simulation -->
+      <CellType TypeId="0" TypeName="Medium"/>
+      <CellType TypeId="1" TypeName="Boid"/>
+   </Plugin>
+   
+   <Plugin Name="Volume">
+      <VolumeEnergyParameters CellType="Boid" LambdaVolume="5.0" TargetVolume="25"/>
+   </Plugin>
+<!--    <Plugin Name="Surface"> -->
+<!--       <SurfaceEnergyParameters CellType="Boid" LambdaSurface="2.0" TargetSurface="25"/> -->
+<!--    </Plugin> -->
+
+   
+   <Plugin Name="ExternalPotential">
+      
+      <!-- External force applied to cell. Each cell has different force and force components have to be managed in Python. -->
+      <!-- e.g. cell.lambdaVecX=0.5; cell.lambdaVecY=0.1 ; cell.lambdaVecZ=0.3; -->
+      <Algorithm>PixelBased</Algorithm>
+   </Plugin>
+   
+   <Plugin Name="CenterOfMass">
+      
+      <!-- Module tracking center of mass of each cell -->
+   </Plugin>
+   
+   <Plugin Name="NeighborTracker">
+      
+      <!-- Module tracking neighboring cells of each cell -->
+   </Plugin>
+   
+   <Plugin Name="MomentOfInertia">
+      
+      <!-- Module tracking moment of inertia of each cell -->
+   </Plugin>
+   
+   <Plugin Name="BoundaryPixelTracker">
+      
+      <!-- Module tracking boundary pixels of each cell -->
+      <NeighborOrder>1</NeighborOrder>
+   </Plugin>
+   
+   <Plugin Name="Contact">
+      <!-- Specification of adhesion energies -->
+      <Energy Type1="Medium" Type2="Medium">10.0</Energy>
+      <Energy Type1="Medium" Type2="Boid">15.0</Energy>
+      <Energy Type1="Boid" Type2="Boid">5.0</Energy>
+      <NeighborOrder>3</NeighborOrder>
+   </Plugin>
+   
+<!--    <Steppable Type="BlobInitializer"> -->
+      
+<!--       <Region> -->
+<!--          <Center x="200" y="25" z="0"/> -->
+<!--          <Radius>24</Radius> -->
+<!--          <Gap>0</Gap> -->
+<!--          <Width>1</Width> -->
+<!--          <Types>Boid</Types> -->
+<!--       </Region> -->
+<!--    </Steppable> -->
+   <Steppable Type="UniformInitializer">
+   
+   <!-- Initial layout of cells in the form of rectangular slab -->
+   <Region>
+      <BoxMin x="0" y="0" z="0"/>
+      <BoxMax x="200" y="50" z="1"/>
+      <Gap>0</Gap>
+      <Width>5</Width>
+      <Types>Boid</Types>
+   </Region>
+</Steppable>
+
+</CompuCell3D>

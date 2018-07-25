@@ -1,0 +1,5 @@
+<Simulation version="3.6.2">
+   <XMLScript Type="XMLScript">Simulation/Boids.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/Boids.py</PythonScript>
+   <Resource Type="Python">Simulation/BoidsSteppables.py</Resource>
+</Simulation>
