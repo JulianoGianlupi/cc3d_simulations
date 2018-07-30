@@ -24,8 +24,7 @@ class singleCellExternalForceSteppable(SteppableBasePy):
         #constants
         self.targetVolume = 100.
         self.lambdaVolume = 8.
-        self.forceTheta = 1.*np.pi
-        self.forceModulus = [-100,-100,-100,-100,-100,-100,-100,-100,-100,-100,-100,-100,-100,]#[-1.,-5.,-10.,-20.,-30.,-40.,-50.,-75.,-100.,-500.,-1000.,-5000.,-10000.,-50000.]
+        self.forceModulus = -10
         self.forceCounter = 0
         self.deltaTime = 5
         
@@ -62,55 +61,6 @@ class singleCellExternalForceSteppable(SteppableBasePy):
         
         for cell in self.cellList:
             self.scalarCLField[cell] = cell.dict['angle']
-        
-        
-        
-        if (mcs%100 == 0) and (mcs>0):
-            self.forceCounter+=1
-            t=100
-            if self.forceCounter > len(self.forceModulus):
-                self.stopSimulation()
-            for cell in self.cellList:
-                
-                #calculates the avg velocity over 1000 mcs
-                if self.centerMassX[-t] > cell.xCOM+.2*self.dim.x:
-                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                else:
-                    vlx = (cell.xCOM - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                if self.centerMassY[-t] > cell.yCOM+.2*self.dim.y:
-                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                else:
-                    vly = (cell.yCOM - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                    
-                if self.centerMassX[-t] < cell.xCOM-.2*self.dim.x:
-                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                else:
-                    vlx = (cell.xCOM - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                if self.centerMassY[-t] < cell.yCOM-.2*self.dim.y:
-                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                else:
-                    vly = (cell.yCOM - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                vl = np.sqrt(vlx*vlx + vly*vly)
-                cell.dict['velocity'].append(vl)
-                
-                #changes the force modulus
-                
-                #
-                try:
-                    cell.lambdaVecX = self.forceModulus[self.forceCounter]*np.cos(cell.dict['forceAngle']) 
-                    cell.lambdaVecY = self.forceModulus[self.forceCounter]*np.sin(cell.dict['forceAngle'])    
-                except:
-                    self.stopSimulation()
-                    break
-                    
         #
         for cell in self.cellList:
             self.centerMassX = cell.dict['centerMassX']
