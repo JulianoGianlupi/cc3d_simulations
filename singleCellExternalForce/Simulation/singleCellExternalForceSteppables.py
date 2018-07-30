@@ -18,7 +18,7 @@ class singleCellExternalForceSteppable(SteppableBasePy):
         self.targetVolume = 1000.
         self.lambdaVolume = 8.
         self.forceTheta = 1.*np.pi
-        self.forceModulus = [-100,-100,-100,-100,-100,-100,-100,-100,-100,-100,-100,-100,-100,]#[-1.,-5.,-10.,-20.,-30.,-40.,-50.,-75.,-100.,-500.,-1000.,-5000.,-10000.,-50000.]
+        self.forceModulus = [-1.,-5.,-10.,-20.,-30.,-40.,-50.,-75.,-100.,-500.,-1000.,-5000.,-10000.,-50000.]
         self.forceCounter = 0
         self.deltaTime = 5
         
