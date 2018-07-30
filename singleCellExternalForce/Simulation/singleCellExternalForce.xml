@@ -11,7 +11,7 @@
    <Boundary_y>Periodic</Boundary_y>
 </Potts>
    <Metadata>
-   <DebugOutputFrequency>100</DebugOutputFrequency>
+   <DebugOutputFrequency>1</DebugOutputFrequency>
 </Metadata>
 
    <Plugin Name="CellType">
@@ -42,7 +42,11 @@
       <Energy Type1="Cell" Type2="Cell">10.0</Energy>
       <NeighborOrder>1</NeighborOrder>
    </Plugin>
+   <Plugin Name="NeighborTracker">
    
+   <!-- Module tracking neighboring cells of each cell -->
+</Plugin>
+
    <Steppable Type="BlobInitializer">
       
       <!-- Initial layout of cells in the form of spherical (circular in 2D) blob -->
