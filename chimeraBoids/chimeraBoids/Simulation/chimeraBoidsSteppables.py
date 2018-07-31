@@ -7,16 +7,11 @@ import sys
 import numpy as np
 import os
 
-class singleCellExternalForceSteppable(SteppableBasePy):
+class chimeraBoidsSteppable(SteppableBasePy):
 
     def __init__(self,_simulator,_frequency=1):
         SteppableBasePy.__init__(self,_simulator,_frequency)
         self.scalarCLField = self.createScalarFieldCellLevelPy("Angle")
-        
-        
-        
-        
-        
         
     def start(self):
         # any code in the start function runs before MCS=0
@@ -112,4 +107,6 @@ class singleCellExternalForceSteppable(SteppableBasePy):
             cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
             cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
     def finish(self):
-       pass
+        # Finish Function gets called after the last MCS
+        pass
+        
