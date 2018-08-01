@@ -54,7 +54,7 @@
          <Center x="128" y="128" z="0"/>
          <Radius>100</Radius>
          <Gap>2</Gap>
-         <Width>6</Width>
+         <Width>8</Width>
          <Types>Cell</Types>
       </Region>
    </Steppable>

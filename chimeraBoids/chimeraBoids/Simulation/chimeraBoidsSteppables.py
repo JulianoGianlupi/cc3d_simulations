@@ -19,7 +19,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
         # any code in the start function runs before MCS=0
         
         #constants
-        self.targetVolume = 36.
+        self.targetVolume = 64.
         self.lambdaVolume = 8.
         self.forceModulus = -10
         self.forceCounter = 0
@@ -87,9 +87,27 @@ class chimeraBoidsSteppable(SteppableBasePy):
                 dx = cell.xCOM - self.centerMassX[-self.deltaTime]
                 dy = cell.yCOM - self.centerMassY[-self.deltaTime]
                 cell.dict['angle'] = np.angle(complex(dx,dy))
+                if self.centerMassX[-self.deltaTime] > cell.xCOM+.2*self.dim.x:
+                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime
+                    
+                elif self.centerMassX[-self.deltaTime] < cell.xCOM-.2*self.dim.x:
+                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime
+                    
+                else:
+                    vlx = (cell.xCOM - self.centerMassX[-self.deltaTime])/self.deltaTime
                 
-                cell.dict['velocityX'] = (cell.xCOM - self.centerMassX[-self.deltaTime])/self.deltaTime
-                cell.dict['velocityY'] = (cell.yCOM - self.centerMassY[-self.deltaTime])/self.deltaTime
+                
+                if self.centerMassY[-self.deltaTime] > cell.yCOM+.2*self.dim.y:
+                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-self.deltaTime])/self.deltaTime
+                    
+                elif self.centerMassY[-self.deltaTime] < cell.yCOM-.2*self.dim.y:
+                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-self.deltaTime])/self.deltaTime
+                    
+                else:
+                    vly = (cell.yCOM - self.centerMassY[-self.deltaTime])/self.deltaTime
+                    
+                cell.dict['velocityX'] = vlx
+                cell.dict['velocityY'] = vly
                 
             
         #boids force definition
