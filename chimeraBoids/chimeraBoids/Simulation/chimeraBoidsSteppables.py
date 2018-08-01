@@ -17,10 +17,10 @@ class chimeraBoidsSteppable(SteppableBasePy):
         # any code in the start function runs before MCS=0
         
         #constants
-        self.targetVolume = 36.
-        self.lambdaVolume = 3.
+        self.targetVolume = 100.
+        self.lambdaVolume = 8.
         self.forceModulus = -50
-#         self.forceCounter = 0
+        self.forceCounter = 0
         self.deltaTime = 5
         #boids parameters
         self.alphaBoids = .5
@@ -60,8 +60,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
         #type here the code that will run every _frequency MCS
         
         for cell in self.cellList:
-            if cell:
-                self.scalarCLField[cell] = cell.dict['angle']
+            self.scalarCLField[cell] = cell.dict['angle']
         #
         for cell in self.cellList:
             self.centerMassX = cell.dict['centerMassX']
@@ -103,10 +102,10 @@ class chimeraBoidsSteppable(SteppableBasePy):
             
             cell.dict['previousForceX'] = forceX
             cell.dict['previousForceY'] = forceY
-            cell.dict['forceAngle'] = np.angle(complex(forceX,forceY)) + self.gammaBoids * np.random.uniform(-np.pi,np.pi)
+            cell.dict['forceAngle'] = np.angle(complex(forceX,forceY)) + self.gammaBoids * np.random.uniform(0.,2.*np.pi)
             
-            cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-            cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
+#             cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+#             cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
     def finish(self):
         # Finish Function gets called after the last MCS
         pass
