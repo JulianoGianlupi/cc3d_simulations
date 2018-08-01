@@ -17,16 +17,16 @@ class chimeraBoidsSteppable(SteppableBasePy):
         # any code in the start function runs before MCS=0
         
         #constants
-        self.targetVolume = 36.
-        self.lambdaVolume = 3.
-        self.forceModulus = -50
-#         self.forceCounter = 0
+        self.targetVolume = 100.
+        self.lambdaVolume = 8.
+        self.forceModulus = -10
+        self.forceCounter = 0
         self.deltaTime = 5
         #boids parameters
-        self.alphaBoids = .5
-        self.betaBoids = .5
+        self.alphaBoids = 0
+        self.betaBoids = 1.
         self.gammaBoids = .5
-        self.deltaBoids = .5
+        self.deltaBoids = 0
         
         
 #         self.pWAngle = self.addNewPlotWindow(_title='Angle (rad) x Time', _xAxisTitle='MonteCarlo Step (MCS)',
