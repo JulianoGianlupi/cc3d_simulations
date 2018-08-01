@@ -26,7 +26,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
         self.deltaTime = 5
         #boids parameters
         self.alphaBoids = .5
-        self.betaBoids = 5
+        self.betaBoids = 1.
         self.gammaBoids = .1
         self.deltaBoids = .1
         
@@ -87,20 +87,24 @@ class chimeraBoidsSteppable(SteppableBasePy):
                 dx = cell.xCOM - self.centerMassX[-self.deltaTime]
                 dy = cell.yCOM - self.centerMassY[-self.deltaTime]
                 cell.dict['angle'] = np.angle(complex(dx,dy))
-                if self.centerMassX[-self.deltaTime] > cell.xCOM+.2*self.dim.x:
+                if (self.centerMassX[-self.deltaTime] > .9*self.dim.x and
+                                            cell.xCOM < .1*self.dim.x):
                     vlx = (cell.xCOM+self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime
                     
-                elif self.centerMassX[-self.deltaTime] < cell.xCOM-.2*self.dim.x:
-                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime
+                elif (self.centerMassX[-self.deltaTime] < .1*self.dim.x and
+                                              cell.xCOM > .9*self.dim.x):
+                    vlx = (cell.xCOM-self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime
                     
                 else:
                     vlx = (cell.xCOM - self.centerMassX[-self.deltaTime])/self.deltaTime
                 
                 
-                if self.centerMassY[-self.deltaTime] > cell.yCOM+.2*self.dim.y:
+                if (self.centerMassY[-self.deltaTime] > .9*self.dim.y and
+                                            cell.yCOM < .1*self.dim.y):
                     vly = (cell.yCOM+self.dim.y - self.centerMassY[-self.deltaTime])/self.deltaTime
                     
-                elif self.centerMassY[-self.deltaTime] < cell.yCOM-.2*self.dim.y:
+                elif (self.centerMassY[-self.deltaTime] < .1*self.dim.y and
+                                              cell.yCOM > .9*self.dim.y):
                     vly = (cell.yCOM+self.dim.y - self.centerMassY[-self.deltaTime])/self.deltaTime
                     
                 else:
@@ -135,7 +139,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
                 
                 cell.dict['previousForceX'] = forceX
                 cell.dict['previousForceY'] = forceY
-                cell.dict['forceAngle'] = np.angle(complex(forceX,forceY)) + self.gammaBoids * np.random.uniform(0.,2.*np.pi)
+                cell.dict['forceAngle'] = np.angle(complex(forceX,forceY)) + self.gammaBoids * np.random.uniform(-np.pi,np.pi)
                 
                 cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
                 cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])   
