@@ -11,7 +11,7 @@
    <Boundary_y>Periodic</Boundary_y>
 </Potts>
    <Metadata>
-   <DebugOutputFrequency>100</DebugOutputFrequency>
+   <DebugOutputFrequency>1</DebugOutputFrequency>
 </Metadata>
 
    <Plugin Name="CellType">
@@ -52,9 +52,9 @@
       <!-- Initial layout of cells in the form of spherical (circular in 2D) blob -->
       <Region>
          <Center x="500" y="500" z="0"/>
-         <Radius>100</Radius>
+         <Radius>6</Radius>
          <Gap>0</Gap>
-         <Width>10</Width>
+         <Width>12</Width>
          <Types>Cell</Types>
       </Region>
    </Steppable>
