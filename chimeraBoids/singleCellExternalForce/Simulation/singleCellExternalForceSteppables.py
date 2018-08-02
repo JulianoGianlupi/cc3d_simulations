@@ -15,9 +15,9 @@ class singleCellExternalForceSteppable(SteppableBasePy):
         # any code in the start function runs before MCS=0
         
         #constants
-        self.targetVolume = 1000.
+        self.targetVolume = 64.
         self.lambdaVolume = 8.
-        self.forceTheta = 1.*np.pi
+        self.forceTheta = 0.*np.pi
         self.forceModulus = [-1.,-5.,-10.,-20.,-30.,-40.,-50.,-75.,-100.,-500.,-1000.,-5000.,-10000.,-50000.]
         self.forceCounter = 0
         self.deltaTime = 5
@@ -96,9 +96,9 @@ class singleCellExternalForceSteppable(SteppableBasePy):
                 cell.dict['angle'] = np.angle(complex(dx,dy))
 
             #changing parameters
-            if (mcs%100 == 0) and (mcs>0):
+            if (mcs%1000 == 0) and (mcs>0):
                 
-                t=100
+                t=1000
                 #calculates the avg velocity over 1000 mcs
                 if self.centerMassX[-t] > cell.xCOM+.2*self.dim.x:
                     vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
@@ -127,9 +127,9 @@ class singleCellExternalForceSteppable(SteppableBasePy):
                     cell.dict['velocityY'].append(vly)
                 vl = np.sqrt(vlx*vlx + vly*vly)
                 cell.dict['velocity'].append(vl)
-                self.pWVelocity.addDataPoint("Velocity X", -self.forceModulus[self.forceCounter-1], vlx)
-                self.pWVelocity.addDataPoint("Velocity Y", -self.forceModulus[self.forceCounter-1], vly)
-                self.pWVelocity.addDataPoint("Velocity", -self.forceModulus[self.forceCounter-1], vl)
+                self.pWVelocity.addDataPoint("Velocity X", -self.forceModulus[self.forceCounter], vlx)
+                self.pWVelocity.addDataPoint("Velocity Y", -self.forceModulus[self.forceCounter], vly)
+                self.pWVelocity.addDataPoint("Velocity", -self.forceModulus[self.forceCounter], vl)
                 
                 #changes the force modulus
                 self.forceCounter+=1
