@@ -1,2 +1,6 @@
 
 chimeraBoids/chimeraBoids/Simulation/_settings.sqlite
+chimeraBoids/chimeraBoids/Simulation/_settings.sqlite
+chimeraBoids/chimeraBoids/Simulation/chimeraBoidsSteppables.pyc
+*.pyc
+*.sqlite

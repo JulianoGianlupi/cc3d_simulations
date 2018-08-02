@@ -3,7 +3,7 @@
 <Potts>
    
    <!-- Basic properties of CPM (GGH) algorithm -->
-   <Dimensions x="1000" y="1000" z="1"/>
+   <Dimensions x="256" y="256" z="1"/>
    <Steps>1000000</Steps>
    <Temperature>10.0</Temperature>
    <NeighborOrder>1</NeighborOrder>
@@ -51,10 +51,10 @@
       
       <!-- Initial layout of cells in the form of spherical (circular in 2D) blob -->
       <Region>
-         <Center x="500" y="500" z="0"/>
+         <Center x="128" y="128" z="0"/>
          <Radius>6</Radius>
          <Gap>0</Gap>
-         <Width>12</Width>
+         <Width>8</Width>
          <Types>Cell</Types>
       </Region>
    </Steppable>
