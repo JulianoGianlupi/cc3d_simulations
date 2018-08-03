@@ -1,14 +1,19 @@
+from PlayerPython import * 
+import CompuCellSetup
 
 from PySteppables import *
 import CompuCell
 import sys
-class polarityBoidsSteppable(SteppableBasePy):
+import numpy as np
+import os
+class chimeraBoidsObstacleSteppable(SteppableBasePy):
 
     def __init__(self,_simulator,_frequency=1):
         SteppableBasePy.__init__(self,_simulator,_frequency)
         self.scalarCLField = self.createScalarFieldCellLevelPy("Angle")
         self.scalarVelocityField = self.createScalarFieldCellLevelPy("Speed")
-        self.scalarForceField = self.createScalarFieldCellLevelPy("polarity_Angle")
+        self.scalarForceField = self.createScalarFieldCellLevelPy("Force_Angle")
+        self.vectorCLField = self.createVectorFieldCellLevelPy("Velocity")
         
     def start(self):
         # any code in the start function runs before MCS=0
@@ -16,14 +21,14 @@ class polarityBoidsSteppable(SteppableBasePy):
         #constants
         self.targetVolume = 64.
         self.lambdaVolume = 8.
-        self.forceModulus = -100
+        self.forceModulus = -10
         self.forceCounter = 0
         self.deltaTime = 5
         #boids parameters
-        self.alphaBoids = .5
-        self.betaBoids = 1.
-        self.BBoids = 5
-        self.nBoids = 2
+        self.alphaBoids = 5.5
+        self.betaBoids = .5
+        self.gammaBoids = .1
+        self.deltaBoids = .1
         
         
 #         self.pWAngle = self.addNewPlotWindow(_title='Angle (rad) x Time', _xAxisTitle='MonteCarlo Step (MCS)',
@@ -32,14 +37,17 @@ class polarityBoidsSteppable(SteppableBasePy):
 #         self.pWAngle.addPlot('Angle (rad)', _style='Dots', _color='red', _size=5)
         
         #cell initiation and dictionaries creation
-        for cell in self.cellList:
+        
+        
+        
+        for cell in self.cellListByType(self.BOID):  
+#         for cell in self.cellList:
             cell.targetVolume = self.targetVolume
             cell.lambdaVolume = self.lambdaVolume
             
             
-            cell.dict['forceAngle'] = np.random.uniform(0.,2.*np.pi)
-            cell.dict['angle']=0.
-            cell.dict['polarityAngle']=cell.dict['forceAngle']
+            cell.dict['forceAngle'] = np.random.uniform(-.1*np.pi,.1*np.pi)
+            cell.dict['angle']=cell.dict['forceAngle']
             
             cell.dict['centerMassX'] = [cell.xCOM]
             cell.dict['centerMassY'] = [cell.yCOM]
@@ -47,9 +55,6 @@ class polarityBoidsSteppable(SteppableBasePy):
             
             cell.dict['velocityX'] = 0.
             cell.dict['velocityY'] = 0.
-            
-            cell.dict['polarityX'] = 0.
-            cell.dict['polarityY'] = 0.
             
             cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
             cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle']) 
@@ -62,15 +67,17 @@ class polarityBoidsSteppable(SteppableBasePy):
         #type here the code that will run every _frequency MCS
         
         #fields plotting
-        for cell in self.cellList:
+        for cell in self.cellListByType(self.BOID):
+#         for cell in self.cellList:
             if cell:
                 self.scalarCLField[cell] = cell.dict['angle']/np.pi
                 self.scalarVelocityField[cell] = np.sqrt(cell.dict['velocityX']*cell.dict['velocityX'] 
                                             + cell.dict['velocityY']*cell.dict['velocityX'])
-                self.scalarForceField[cell] = cell.dict['polarityAngle']/np.pi
+                self.scalarForceField[cell] = cell.dict['forceAngle']/np.pi
         #
-
-        for cell in self.cellList:
+        
+        for cell in self.cellListByType(self.BOID):
+#         for cell in self.cellList:
             self.centerMassX = cell.dict['centerMassX']
             self.centerMassY = cell.dict['centerMassY']
             
@@ -109,21 +116,48 @@ class polarityBoidsSteppable(SteppableBasePy):
                 else:
                     vly = (cell.yCOM - self.centerMassY[-self.deltaTime])/self.deltaTime
                     
-                
-                cell.lambdaVecX = (self.forceModulus *  cell.dict['polarityX'] * 
-                                  ( cell.dict['polarityX']**self.nBoids)/ ( (self.BBoids**self.nBoids) + ( cell.dict['polarityX']**self.nBoids)))
-                cell.lambdaVecY = (self.forceModulus *  cell.dict['polarityY'] * 
-                                  ( cell.dict['polarityY']**self.nBoids)/ ( (self.BBoids**self.nBoids) + ( cell.dict['polarityY']**self.nBoids)))
-                
-                cell.dict['polarityX'] = -self.alphaBoids * cell.dict['polarityX'] + self.betaBoids * cell.dict['velocityX']
-                cell.dict['polarityY'] = -self.alphaBoids * cell.dict['polarityY'] + self.betaBoids * cell.dict['velocityY']
-                
-                cell.dict['polarityAngle'] = np.angle(complex(cell.dict['polarityX'],cell.dict['polarityY']))
-                
                 cell.dict['velocityX'] = vlx
                 cell.dict['velocityY'] = vly
+                self.vectorCLField[cell] = [vlx, vly, 0]
+            
+        #boids force definition
+        if mcs>self.deltaTime:
+            for cell in self.cellListByType(self.BOID):
+#             for cell in self.cellList:
+                cellVx = cell.dict['velocityX']
+                cellVy = cell.dict['velocityY']
+                neigVxList = np.array([])
+                neigVyList = np.array([])
                 
-              
+                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                    if neighbor and neighbor.type == self.BOID:
+                        neigVxList = np.append(neigVxList,neighbor.dict['velocityX'])
+                        neigVyList = np.append(neigVyList,neighbor.dict['velocityY'])
+                    if neighbor and neighbor.type == self.WALL:  
+                        neigVxList = np.append(neigVxList,-2*cell.dict['velocityX'])
+                        neigVyList = np.append(neigVyList,-2*cell.dict['velocityY'])
+                if len(neigVxList):
+                    neigVx = np.mean(neigVxList)
+                else:       
+                    neigVx = 0
+                if len(neigVyList):
+                    neigVy = np.mean(neigVyList)
+                else:
+                    neigVy = 0
+                
+                forceX = self.alphaBoids*cellVx + self.betaBoids*neigVx - self.deltaBoids*cell.dict['previousForceX']
+                forceY = self.alphaBoids*cellVy + self.betaBoids*neigVy - self.deltaBoids*cell.dict['previousForceY']
+                
+                cell.dict['previousForceX'] = forceX
+                cell.dict['previousForceY'] = forceY
+                cell.dict['forceAngle'] = np.angle(complex(forceX,forceY)) + self.gammaBoids * np.random.uniform(-np.pi,np.pi)
+                
+                cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])   
+                
     def finish(self):
         # Finish Function gets called after the last MCS
         pass
+        
+        
+        

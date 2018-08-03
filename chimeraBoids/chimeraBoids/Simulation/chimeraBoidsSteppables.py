@@ -14,6 +14,8 @@ class chimeraBoidsSteppable(SteppableBasePy):
         self.scalarCLField = self.createScalarFieldCellLevelPy("Angle")
         self.scalarVelocityField = self.createScalarFieldCellLevelPy("Speed")
         self.scalarForceField = self.createScalarFieldCellLevelPy("Force_Angle")
+        self.vectorCLField = self.createVectorFieldCellLevelPy("Velocity")
+        
         
     def start(self):
         # any code in the start function runs before MCS=0
@@ -23,7 +25,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
         self.lambdaVolume = 8.
         self.forceModulus = -10
         self.forceCounter = 0
-        self.deltaTime = 5
+        self.deltaTime = 10
         #boids parameters
         self.alphaBoids = .5
         self.betaBoids = 1.
@@ -42,7 +44,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
             cell.lambdaVolume = self.lambdaVolume
             
             
-            cell.dict['forceAngle'] = np.random.uniform(0.,2.*np.pi)
+            cell.dict['forceAngle'] = np.random.uniform(-np.pi,np.pi)
             cell.dict['angle']=cell.dict['forceAngle']
             
             cell.dict['centerMassX'] = [cell.xCOM]
@@ -112,6 +114,9 @@ class chimeraBoidsSteppable(SteppableBasePy):
                     
                 cell.dict['velocityX'] = vlx
                 cell.dict['velocityY'] = vly
+                self.vectorCLField[cell] = [vlx, vly, 0]
+
+                
                 
             
         #boids force definition
