@@ -15,6 +15,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
         self.scalarVelocityField = self.createScalarFieldCellLevelPy("Speed")
         self.scalarForceField = self.createScalarFieldCellLevelPy("Force_Angle")
         self.vectorCLField = self.createVectorFieldCellLevelPy("Velocity")
+        self.vectorForceField = self.createVectorFieldCellLevelPy("Force")
         
         
     def start(self):
@@ -23,13 +24,13 @@ class chimeraBoidsSteppable(SteppableBasePy):
         #constants
         self.targetVolume = 64.
         self.lambdaVolume = 8.
-        self.forceModulus = -10
+        self.forceModulus = -20
         self.forceCounter = 0
         self.deltaTime = 10
         #boids parameters
-        self.alphaBoids = .5
+        self.alphaBoids = 1.5
         self.betaBoids = 1.
-        self.gammaBoids = .1
+        self.gammaBoids = .5
         self.deltaBoids = .1
         
         
@@ -71,6 +72,8 @@ class chimeraBoidsSteppable(SteppableBasePy):
                 self.scalarVelocityField[cell] = np.sqrt(cell.dict['velocityX']*cell.dict['velocityX'] 
                                             + cell.dict['velocityY']*cell.dict['velocityX'])
                 self.scalarForceField[cell] = cell.dict['forceAngle']/np.pi
+                self.vectorCLField[cell] = [cell.dict['velocityX'], cell.dict['velocityY'], 0]
+                self.vectorForceField[cell] = [cell.lambdaVecX,cell.lambdaVecY,0]
         #
 
         for cell in self.cellList:
@@ -114,7 +117,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
                     
                 cell.dict['velocityX'] = vlx
                 cell.dict['velocityY'] = vly
-                self.vectorCLField[cell] = [vlx, vly, 0]
+                
 
                 
                 

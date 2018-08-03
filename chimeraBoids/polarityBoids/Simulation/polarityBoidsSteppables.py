@@ -9,6 +9,10 @@ class polarityBoidsSteppable(SteppableBasePy):
         self.scalarCLField = self.createScalarFieldCellLevelPy("Angle")
         self.scalarVelocityField = self.createScalarFieldCellLevelPy("Speed")
         self.scalarForceField = self.createScalarFieldCellLevelPy("polarity_Angle")
+        self.vectorVelocityField = self.createVectorFieldCellLevelPy("Velocity")
+        self.vectorPolarityField = self.createVectorFieldCellLevelPy("Polarity")
+        self.vectorForceField = self.createVectorFieldCellLevelPy("Force")
+        
         
     def start(self):
         # any code in the start function runs before MCS=0
@@ -68,6 +72,9 @@ class polarityBoidsSteppable(SteppableBasePy):
                 self.scalarVelocityField[cell] = np.sqrt(cell.dict['velocityX']*cell.dict['velocityX'] 
                                             + cell.dict['velocityY']*cell.dict['velocityX'])
                 self.scalarForceField[cell] = cell.dict['polarityAngle']/np.pi
+                self.vectorVelocityField[cell] = [cell.dict['velocityX'],cell.dict['velocityY'],0]
+                self.vectorPolarityField[cell] = [cell.dict['polarityX'],cell.dict['polarityY'],0]
+                self.vectorForceField[cell] = [cell.lambdaVecX,cell.lambdaVecY,0]
         #
 
         for cell in self.cellList:
