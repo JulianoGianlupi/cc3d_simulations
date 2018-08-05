@@ -11,6 +11,8 @@ class chimeraBoidsSteppable(SteppableBasePy):
 
     def __init__(self,_simulator,_frequency=1):
         SteppableBasePy.__init__(self,_simulator,_frequency)
+        
+        #initiating the extra fields
         self.scalarCLField = self.createScalarFieldCellLevelPy("Angle")
         self.scalarVelocityField = self.createScalarFieldCellLevelPy("Speed")
         self.scalarForceField = self.createScalarFieldCellLevelPy("Force_Angle")
