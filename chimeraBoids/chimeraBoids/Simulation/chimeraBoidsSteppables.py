@@ -30,6 +30,7 @@ class chimeraBoidsSteppable(SteppableBasePy):
         self.forceModulus = -20
         self.forceCounter = 0
         self.deltaTime = 10
+        self.maxReasonableSpeed = np.sqrt(self.dim.x*self.dim.x/4 +self.dim.y*self.dim.y/4)/self.deltaTime
         #boids parameters
         self.alphaBoids = 1.5
         self.betaBoids = 5.
@@ -91,13 +92,15 @@ class chimeraBoidsSteppable(SteppableBasePy):
                 self.vectorCLField[cell] = [cell.dict['velocityX'], cell.dict['velocityY'], 0]
                 self.vectorForceField[cell] = [cell.lambdaVecX,cell.lambdaVecY,0]
         #
+                
                 speed = np.sqrt(cell.dict['velocityX']*cell.dict['velocityX'] 
-                                            + cell.dict['velocityY']*cell.dict['velocityX'])
-                if float('-inf') < float(speed) < float('inf'):
-                    self.cellsSpeeds.append(speed)
-                    self.scalarVelocityField[cell] = np.sqrt(
-                                              cell.dict['velocityX']*cell.dict['velocityX'] 
-                                            + cell.dict['velocityY']*cell.dict['velocityX'])
+                                            + cell.dict['velocityY']*cell.dict['velocityY'])
+                if (float('-inf') < float(speed) < float('inf')):
+                    if abs(float(speed)) < self.maxReasonableSpeed:
+                        self.cellsSpeeds.append(speed)
+                        self.scalarVelocityField[cell] = np.sqrt(
+                                                  cell.dict['velocityX']*cell.dict['velocityX'] 
+                                                + cell.dict['velocityY']*cell.dict['velocityY'])
         if mcs%50:
             self.pW.addHistogram(plot_name='Hist 1', 
                                  value_array=self.cellsSpeeds, 
@@ -121,31 +124,43 @@ class chimeraBoidsSteppable(SteppableBasePy):
                 dx = cell.xCOM - self.centerMassX[-self.deltaTime]
                 dy = cell.yCOM - self.centerMassY[-self.deltaTime]
                 cell.dict['angle'] = np.angle(complex(dx,dy))
-                if (self.centerMassX[-self.deltaTime] > .9*self.dim.x and
-                                            cell.xCOM < .1*self.dim.x):
-                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime
-                    
-                elif (self.centerMassX[-self.deltaTime] < .1*self.dim.x and
-                                              cell.xCOM > .9*self.dim.x):
-                    vlx = (cell.xCOM-self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime
-                    
-                else:
-                    vlx = (cell.xCOM - self.centerMassX[-self.deltaTime])/self.deltaTime
+#                 if (self.centerMassX[-self.deltaTime] > .9*self.dim.x and
+#                                             cell.xCOM < .1*self.dim.x):
+#                     vlx = (cell.xCOM+self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime                    
+#                 elif (self.centerMassX[-self.deltaTime] < .1*self.dim.x and
+#                                               cell.xCOM > .9*self.dim.x):
+#                     vlx = (cell.xCOM-self.dim.x - self.centerMassX[-self.deltaTime])/self.deltaTime                   
+#                 else:
+#                     vlx = (cell.xCOM - self.centerMassX[-self.deltaTime])/self.deltaTime                                
+#                 if (self.centerMassY[-self.deltaTime] > .9*self.dim.y and
+#                                             cell.yCOM < .1*self.dim.y):
+#                     vly = (cell.yCOM+self.dim.y - self.centerMassY[-self.deltaTime])/self.deltaTime                    
+#                 elif (self.centerMassY[-self.deltaTime] < .1*self.dim.y and
+#                                               cell.yCOM > .9*self.dim.y):
+#                     vly = (cell.yCOM+self.dim.y - self.centerMassY[-self.deltaTime])/self.deltaTime                    
+#                 else:
+#                     vly = (cell.yCOM - self.centerMassY[-self.deltaTime])/self.deltaTime                    
                 
+                vlx = (cell.xCOM - self.centerMassX[-self.deltaTime])/self.deltaTime
+                vly = (cell.yCOM - self.centerMassY[-self.deltaTime])/self.deltaTime
+#                 speed = np.sqrt(vlx*vlx + vly*vly)
                 
-                if (self.centerMassY[-self.deltaTime] > .9*self.dim.y and
-                                            cell.yCOM < .1*self.dim.y):
-                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-self.deltaTime])/self.deltaTime
-                    
-                elif (self.centerMassY[-self.deltaTime] < .1*self.dim.y and
-                                              cell.yCOM > .9*self.dim.y):
-                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-self.deltaTime])/self.deltaTime
-                    
-                else:
-                    vly = (cell.yCOM - self.centerMassY[-self.deltaTime])/self.deltaTime
-                    
+                if abs(vlx) > .5*self.dim.x/self.deltaTime:          
+                    if vlx<0:
+                        vlx+=self.dim.x/self.deltaTime
+                    else:
+                        vlx-=self.dim.x/self.deltaTime
+                if abs(vly) > .5*self.dim.y/self.deltaTime:          
+                    if vly<0:
+                        vly+=self.dim.y/self.deltaTime
+                    else:
+                        vly-=self.dim.y/self.deltaTime
+                
                 cell.dict['velocityX'] = vlx
                 cell.dict['velocityY'] = vly
+#                 if abs(float(speed)) < self.maxReasonableSpeed: 
+#                     cell.dict['velocityX'] = vlx
+#                     cell.dict['velocityY'] = vly
                 
 
                 
