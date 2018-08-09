@@ -48,7 +48,11 @@
       <Energy Type1="wall" Type2="wall">5.0</Energy>
       <NeighborOrder>1</NeighborOrder>
    </Plugin>
+   <Plugin Name="PixelTracker">
    
+   <!-- Module tracking pixels of each cell -->
+</Plugin>
+
    <Steppable Type="UniformInitializer">
    
    <!-- Initial layout of cells in the form of rectangular slab -->

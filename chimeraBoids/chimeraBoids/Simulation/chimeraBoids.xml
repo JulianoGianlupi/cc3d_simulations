@@ -39,8 +39,8 @@
       <!-- Specification of adhesion energies -->
       <Energy Type1="Medium" Type2="Medium">10.0</Energy>
       <Energy Type1="Medium" Type2="Cell">10.0</Energy>
-      <Energy Type1="Cell" Type2="Cell">25.0</Energy>
-      <NeighborOrder>1</NeighborOrder>
+      <Energy Type1="Cell" Type2="Cell">20.0</Energy>
+      <NeighborOrder>3</NeighborOrder>
    </Plugin>
    <Plugin Name="NeighborTracker">
    

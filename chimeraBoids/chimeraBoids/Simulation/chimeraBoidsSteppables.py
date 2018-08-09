@@ -6,6 +6,7 @@ import CompuCell
 import sys
 import numpy as np
 import os
+import math
 
 class chimeraBoidsSteppable(SteppableBasePy):
 
@@ -31,9 +32,21 @@ class chimeraBoidsSteppable(SteppableBasePy):
         self.deltaTime = 10
         #boids parameters
         self.alphaBoids = 1.5
-        self.betaBoids = 1.
+        self.betaBoids = 5.
         self.gammaBoids = .5
         self.deltaBoids = .1
+        
+        
+        #plots
+        
+        self.pW = self.addNewPlotWindow(_title='Histogram', 
+                                        _xAxisTitle='Speed',
+                                        _yAxisTitle='Count',
+                                        _xScaleType='linear', 
+                                        _yScaleType='linear')
+        self.pW.addHistogramPlot(_plotName='Hist 1', _color='green',
+                                 _alpha=100)  
+        
         
         
 #         self.pWAngle = self.addNewPlotWindow(_title='Angle (rad) x Time', _xAxisTitle='MonteCarlo Step (MCS)',
@@ -68,16 +81,30 @@ class chimeraBoidsSteppable(SteppableBasePy):
         #type here the code that will run every _frequency MCS
         
         #fields plotting
+        self.cellsSpeeds = []
         for cell in self.cellList:
             if cell:
                 self.scalarCLField[cell] = cell.dict['angle']/np.pi
-                self.scalarVelocityField[cell] = np.sqrt(cell.dict['velocityX']*cell.dict['velocityX'] 
-                                            + cell.dict['velocityY']*cell.dict['velocityX'])
+#                 self.scalarVelocityField[cell] = np.sqrt(cell.dict['velocityX']*cell.dict['velocityX'] 
+#                                             + cell.dict['velocityY']*cell.dict['velocityX'])
                 self.scalarForceField[cell] = cell.dict['forceAngle']/np.pi
                 self.vectorCLField[cell] = [cell.dict['velocityX'], cell.dict['velocityY'], 0]
                 self.vectorForceField[cell] = [cell.lambdaVecX,cell.lambdaVecY,0]
         #
-
+                speed = np.sqrt(cell.dict['velocityX']*cell.dict['velocityX'] 
+                                            + cell.dict['velocityY']*cell.dict['velocityX'])
+                if float('-inf') < float(speed) < float('inf'):
+                    self.cellsSpeeds.append(speed)
+                    self.scalarVelocityField[cell] = np.sqrt(
+                                              cell.dict['velocityX']*cell.dict['velocityX'] 
+                                            + cell.dict['velocityY']*cell.dict['velocityX'])
+        if mcs%50:
+            self.pW.addHistogram(plot_name='Hist 1', 
+                                 value_array=self.cellsSpeeds, 
+                                 number_of_bins=20)
+#                                  range = (np.nanmin(self.cellsSpeeds), np.nanmax(self.cellsSpeeds)))
+              
+        
         for cell in self.cellList:
             self.centerMassX = cell.dict['centerMassX']
             self.centerMassY = cell.dict['centerMassY']

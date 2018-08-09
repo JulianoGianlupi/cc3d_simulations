@@ -16,8 +16,33 @@ class chimeraBoidsObstacleSteppable(SteppableBasePy):
         self.vectorCLField = self.createVectorFieldCellLevelPy("Velocity")
         
     def start(self):
-        # any code in the start function runs before MCS=0
         
+        # any code in the start function runs before MCS=0
+        #########################
+        # Here There be Dragons #
+        #########################
+        #fusing the obstacle
+        wall_cells = []
+        #create an aux list of wall cells
+        for cell in self.cellListByType(self.WALL):
+            wall_cells.append(cell)
+        
+        first_wall_cell = wall_cells[0]
+        #iterate over wall cells but the first
+        #and merge them with the first
+        for cell in wall_cells[1:]:
+            pixelList = self.getCellPixelList(cell)
+            pt_list = []
+            #aux list of pixels
+            for pixelTrackerData in pixelList:
+                pt_list.append(pixelTrackerData.pixel)
+            #merging pixels
+            for pt in pt_list:
+                self.cellField[pt.x,pt.y,pt.z] = first_wall_cell            
+        ###################
+        # No more Dragons #    
+        ###################    
+                
         #constants
         self.targetVolume = 64.
         self.lambdaVolume = 8.
