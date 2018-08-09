@@ -15,9 +15,9 @@ class singleCellExternalForceSteppable(SteppableBasePy):
         # any code in the start function runs before MCS=0
         
         #constants
-        self.targetVolume = 64.
+        self.targetVolume = 1000.
         self.lambdaVolume = 8.
-        self.forceTheta = 0.*np.pi
+        self.forceTheta = 1.*np.pi
         self.forceModulus = [-1.,-5.,-10.,-20.,-30.,-40.,-50.,-75.,-100.,-500.,-1000.,-5000.,-10000.,-50000.]
         self.forceCounter = 0
         self.deltaTime = 5

@@ -1,0 +1,2 @@
+Is the noise on the boids force nescessary? Afterall it represents a temperature,
+and cpm already has a temperature.

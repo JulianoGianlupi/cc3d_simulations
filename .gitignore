@@ -1,2 +1,14 @@
 
+<<<<<<< HEAD
 *.sqlite
+=======
+chimeraBoids/chimeraBoids/Simulation/_settings.sqlite
+<<<<<<< HEAD
+=======
+chimeraBoids/chimeraBoids/Simulation/_settings.sqlite
+chimeraBoids/chimeraBoids/Simulation/chimeraBoidsSteppables.pyc
+*.pyc
+>>>>>>> multiCell
+*.sqlite
+*.png
+>>>>>>> master

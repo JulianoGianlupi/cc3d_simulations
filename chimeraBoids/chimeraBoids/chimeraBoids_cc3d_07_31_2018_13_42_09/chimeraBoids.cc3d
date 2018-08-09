@@ -1,0 +1,5 @@
+<Simulation version="3.6.2">
+   <XMLScript Type="XMLScript">Simulation/chimeraBoids.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/chimeraBoids.py</PythonScript>
+   <Resource Type="Python">Simulation/chimeraBoidsSteppables.py</Resource>
+</Simulation>
