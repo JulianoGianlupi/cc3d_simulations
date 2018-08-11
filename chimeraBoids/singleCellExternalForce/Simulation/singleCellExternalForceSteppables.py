@@ -22,7 +22,9 @@ class singleCellExternalForceSteppable(SteppableBasePy):
         self.forceCounter = 0
         self.deltaTime = 5
         
-        
+        #turns around
+        self.turnsAroundX = 0
+        self.turnsAroundY = 0
         #graphs:
         self.pWCM = self.addNewPlotWindow(_title='Center of Mass x Time', _xAxisTitle='MonteCarlo Step (MCS)',
                                         _yAxisTitle='Center of Mass', _xScaleType='linear', _yScaleType='linear')
@@ -100,31 +102,37 @@ class singleCellExternalForceSteppable(SteppableBasePy):
                 
                 t=1000
                 #calculates the avg velocity over 1000 mcs
-                if self.centerMassX[-t] > cell.xCOM+.2*self.dim.x:
-                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                else:
-                    vlx = (cell.xCOM - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                if self.centerMassY[-t] > cell.yCOM+.2*self.dim.y:
-                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                else:
-                    vly = (cell.yCOM - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
+#                 if self.centerMassX[-t] > cell.xCOM+.2*self.dim.x:
+#                     vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
+#                     cell.dict['velocityX'].append(vlx)
+#                 else:
+#                     vlx = (cell.xCOM - self.centerMassX[-t])/t
+#                     cell.dict['velocityX'].append(vlx)
+#                 if self.centerMassY[-t] > cell.yCOM+.2*self.dim.y:
+# #                     vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
+# #                     cell.dict['velocityY'].append(vly)
+#                 else:
+#                     vly = (cell.yCOM - self.centerMassY[-t])/t
+#                     cell.dict['velocityY'].append(vly)
                     
-                if self.centerMassX[-t] < cell.xCOM-.2*self.dim.x:
-                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                else:
-                    vlx = (cell.xCOM - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                if self.centerMassY[-t] < cell.yCOM-.2*self.dim.y:
-                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                else:
-                    vly = (cell.yCOM - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
+#                 if self.centerMassX[-t] < cell.xCOM-.2*self.dim.x:
+#                     vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
+#                     cell.dict['velocityX'].append(vlx)
+#                 else:
+#                     vlx = (cell.xCOM - self.centerMassX[-t])/t
+#                     cell.dict['velocityX'].append(vlx)
+#                 if self.centerMassY[-t] < cell.yCOM-.2*self.dim.y:
+#                     vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
+#                     cell.dict['velocityY'].append(vly)
+#                 else:
+#                     vly = (cell.yCOM - self.centerMassY[-t])/t
+#                     cell.dict['velocityY'].append(vly)
+                vlx = (cell.xCOM - self.centerMassX[-t])/t
+                cell.dict['velocityX'].append(vlx)
+                
+                vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
+                cell.dict['velocityY'].append(vly)
+                
                 vl = np.sqrt(vlx*vlx + vly*vly)
                 cell.dict['velocity'].append(vl)
                 self.pWVelocity.addDataPoint("Velocity X", -self.forceModulus[self.forceCounter], vlx)
@@ -142,9 +150,24 @@ class singleCellExternalForceSteppable(SteppableBasePy):
                 except:
                     self.stopSimulation()
                     break
-            
+            moveX = 0
+            moveY =0
+            if mcs>5:
+                deltaX = cell.xCOM-self.centerMassX[-5]
+                deltaY = cell.yCOM-self.centerMassY[-5]
                 
-            cm = np.sqrt( (cell.xCOM)*(cell.xCOM) + (cell.yCOM)*(cell.yCOM))
+                if abs(deltaX) > .5*self.dim.x:
+                    if deltaX < 0:
+                        moveX =- self.dim.x
+                    else:
+                        moveX = self.dim.x
+                if abs(deltaY) > .5*self.dim.y:
+                    if deltaY < 0:
+                        moveY = -self.dim.y
+                    else:
+                        moveY = self.dim.y   
+                print moveX,moveY
+            cm = np.sqrt( cell.xCOM*cell.xCOM + cell.yCOM*cell.yCOM)
             cell.dict['centerMassX'].append(cell.xCOM)            
             cell.dict['centerMassY'].append(cell.yCOM)
             cell.dict['centerMass'].append(cm)
