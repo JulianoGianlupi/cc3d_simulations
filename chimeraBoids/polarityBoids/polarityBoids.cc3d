@@ -1,0 +1,5 @@
+<Simulation version="3.6.2">
+   <XMLScript Type="XMLScript">Simulation/polarityBoids.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/polarityBoids.py</PythonScript>
+   <Resource Type="Python">Simulation/polarityBoidsSteppables.py</Resource>
+</Simulation>

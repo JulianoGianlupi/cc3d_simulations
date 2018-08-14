@@ -7,6 +7,23 @@ import sys
 import numpy as np
 import os
 
+#adding the python vars to be scaned
+
+global G_targetVolume_G, G_lambda_Volume_G,G_forceAngle_G, G_forceModulus_G
+
+G_forceAngle_G = 1
+#the number given in the parameter scan is the angle in rads divided by pi multiplied by 12, 
+#this is done in order to avoid a repeating decimal (might have to redo, but works for pi/6, pi/4, pi/2)
+G_forceAngle_G *= np.pi/12. 
+
+G_forceModulus_G = 1
+#it's actually the energy, and f = -grad energy
+G_forceModulus_G =-1.*float(G_forceModulus_G)
+
+G_lambda_Volume_G = 1
+
+G_targetVolume_G = 1
+
 
 
 class singleCellExternalForceSteppable(SteppableBasePy):
@@ -17,13 +34,13 @@ class singleCellExternalForceSteppable(SteppableBasePy):
         # any code in the start function runs before MCS=0
         
         #constants
-        self.targetVolume = 64. #volume for cells
-        self.lambdaVolume = 8.  #how rigid cells are
-        self.forceTheta = 0.*np.pi #angle the force will be applied
-        #list of forces to sweep
-        self.forceModulus = [-1.,-5.,-10.,-20.,-30.,-40.,-50.,-75.,-100.,-500.,-1000.,-5000.,-10000.,-50000.]
+        self.targetVolume = G_targetVolume_G  #volume for cells
+        self.lambdaVolume = G_lambda_Volume_G #how rigid cells are
+        self.forceTheta = G_forceAngle_G #angle the force will be applied
+        
+        self.forceModulus = G_forceModulus_G 
 
-        self.forceCounter = 0
+        
         self.deltaTime = 5
         
         #turns around
@@ -69,12 +86,6 @@ class singleCellExternalForceSteppable(SteppableBasePy):
         #type here the code that will run every _frequency MCS
         
         
-        
-        
-        
-        
-        
-        
         for cell in self.cellList:
             #gets the previous center of mass to a variable
             self.centerMassX = cell.dict['centerMassX']
@@ -86,113 +97,7 @@ class singleCellExternalForceSteppable(SteppableBasePy):
                 dy = cell.yCOM - self.centerMassY[-self.deltaTime]
                 cell.dict['angle'] = np.angle(complex(dx,dy))
 
-            #changing parameters every 100 mcs
-            if (mcs%100 == 0) and (mcs>0):
-                
-                t=100
-                #calculates the avg velocity over 1000 mcs
-
-#                 if self.centerMassX[-t] > cell.xCOM+.2*self.dim.x:
-#                     vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
-#                     cell.dict['velocityX'].append(vlx)
-#                 else:
-#                     vlx = (cell.xCOM - self.centerMassX[-t])/t
-#                     cell.dict['velocityX'].append(vlx)
-#                 if self.centerMassY[-t] > cell.yCOM+.2*self.dim.y:
-# #                     vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-# #                     cell.dict['velocityY'].append(vly)
-#                 else:
-#                     vly = (cell.yCOM - self.centerMassY[-t])/t
-#                     cell.dict['velocityY'].append(vly)
-                    
-#                 if self.centerMassX[-t] < cell.xCOM-.2*self.dim.x:
-#                     vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
-#                     cell.dict['velocityX'].append(vlx)
-#                 else:
-#                     vlx = (cell.xCOM - self.centerMassX[-t])/t
-#                     cell.dict['velocityX'].append(vlx)
-#                 if self.centerMassY[-t] < cell.yCOM-.2*self.dim.y:
-#                     vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-#                     cell.dict['velocityY'].append(vly)
-#                 else:
-#                     vly = (cell.yCOM - self.centerMassY[-t])/t
-#                     cell.dict['velocityY'].append(vly)
-                vlx = (cell.xCOM - self.centerMassX[-t])/t
-                cell.dict['velocityX'].append(vlx)
-                
-                vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-                cell.dict['velocityY'].append(vly)
-                
-
-                #and writes it to a dictionary
-                #the bunch of if statments are here to try
-                #to account for cells going trough the border
-                if self.centerMassX[-t] > cell.xCOM+.2*self.dim.x:
-                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                elif self.centerMassX[-t] < cell.xCOM-.2*self.dim.x:
-                    vlx = (cell.xCOM+self.dim.x - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                else:
-                    vlx = (cell.xCOM - self.centerMassX[-t])/t
-                    cell.dict['velocityX'].append(vlx)
-                if self.centerMassY[-t] > cell.yCOM+.2*self.dim.y:
-                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                elif self.centerMassY[-t] < cell.yCOM-.2*self.dim.y:
-                    vly = (cell.yCOM+self.dim.y - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                else:
-                    vly = (cell.yCOM - self.centerMassY[-t])/t
-                    cell.dict['velocityY'].append(vly)
-                #speed
-
-                vl = np.sqrt(vlx*vlx + vly*vly)
-                
-                cell.dict['velocity'].append(vl)
-                
-                #plots the velocities vs force
-                self.pWVelocity.addDataPoint("Velocity X", -self.forceModulus[self.forceCounter], vlx)
-                self.pWVelocity.addDataPoint("Velocity Y", -self.forceModulus[self.forceCounter], vly)
-                self.pWVelocity.addDataPoint("Velocity", -self.forceModulus[self.forceCounter], vl)
-                
-                #changes the force modulus
-                self.forceCounter+=1
-                if self.forceCounter < len(self.forceModulus):
-                    cell.lambdaVecX = self.forceModulus[self.forceCounter]*np.cos(self.forceTheta) 
-                    cell.lambdaVecY = self.forceModulus[self.forceCounter]*np.sin(self.forceTheta) 
-                else:#when all forces have been used stops sim
-                    self.stopSimulation()
-                '''if self.forceCounter > len(self.forceModulus):
-                    self.stopSimulation()
-                #
-                try:
-                    cell.lambdaVecX = self.forceModulus[self.forceCounter]*np.cos(self.forceTheta) 
-                    cell.lambdaVecY = self.forceModulus[self.forceCounter]*np.sin(self.forceTheta)    
-                except:
-                    self.stopSimulation()
-                    break
-
-            moveX = 0
-            moveY =0
-            if mcs>5:
-                deltaX = cell.xCOM-self.centerMassX[-5]
-                deltaY = cell.yCOM-self.centerMassY[-5]
-                
-                if abs(deltaX) > .5*self.dim.x:
-                    if deltaX < 0:
-                        moveX =- self.dim.x
-                    else:
-                        moveX = self.dim.x
-                if abs(deltaY) > .5*self.dim.y:
-                    if deltaY < 0:
-                        moveY = -self.dim.y
-                    else:
-                        moveY = self.dim.y   
-                print moveX,moveY
-            cm = np.sqrt( cell.xCOM*cell.xCOM + cell.yCOM*cell.yCOM)
-
-            '''
+            
             #writes the center of mass to the cell's list    
             cm = np.sqrt( (cell.xCOM)*(cell.xCOM) + (cell.yCOM)*(cell.yCOM))
 
@@ -200,19 +105,6 @@ class singleCellExternalForceSteppable(SteppableBasePy):
             cell.dict['centerMassY'].append(cell.yCOM)
             cell.dict['centerMass'].append(cm)
             
-            #every 50 mcs (after 5) calculates a more
-            #'instantaneous' velocity and plots it
-            #also every 50 mcs it plots the angle
-            if mcs%50 == 0:
-                if mcs>5:
-                    vlx = (cell.xCOM - self.centerMassX[-5])/5
-                    vly = (cell.yCOM - self.centerMassY[-5])/5
-                    vl = np.sqrt( vlx*vlx + vly * vlx)
-                    self.pWVelocityTime.addDataPoint("Velocity X", mcs, vlx)
-                    self.pWVelocityTime.addDataPoint("Velocity Y", mcs, vly)
-                    self.pWVelocityTime.addDataPoint("Velocity", mcs, vl)
-                
-                
     def finish(self):
        pass
 from PySteppables import *

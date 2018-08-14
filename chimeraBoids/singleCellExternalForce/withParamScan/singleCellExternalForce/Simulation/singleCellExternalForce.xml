@@ -3,7 +3,7 @@
 <Potts>
    
    <!-- Basic properties of CPM (GGH) algorithm -->
-   <Dimensions x="254" y="254" z="1"/>
+   <Dimensions x="256" y="256" z="1"/>
    <Steps>1000000</Steps>
    <Temperature>10.0</Temperature>
    <NeighborOrder>1</NeighborOrder>
@@ -11,7 +11,7 @@
    <Boundary_y>Periodic</Boundary_y>
 </Potts>
    <Metadata>
-   <DebugOutputFrequency>100</DebugOutputFrequency>
+   <DebugOutputFrequency>1</DebugOutputFrequency>
 </Metadata>
 
    <Plugin Name="CellType">
@@ -39,7 +39,7 @@
       <!-- Specification of adhesion energies -->
       <Energy Type1="Medium" Type2="Medium">10.0</Energy>
       <Energy Type1="Medium" Type2="Cell">10.0</Energy>
-      <Energy Type1="Cell" Type2="Cell">20.0</Energy>
+      <Energy Type1="Cell" Type2="Cell">10.0</Energy>
       <NeighborOrder>3</NeighborOrder>
    </Plugin>
    <Plugin Name="NeighborTracker">
@@ -52,8 +52,8 @@
       <!-- Initial layout of cells in the form of spherical (circular in 2D) blob -->
       <Region>
          <Center x="128" y="128" z="0"/>
-         <Radius>100</Radius>
-         <Gap>2</Gap>
+         <Radius>6</Radius>
+         <Gap>0</Gap>
          <Width>8</Width>
          <Types>Cell</Types>
       </Region>
