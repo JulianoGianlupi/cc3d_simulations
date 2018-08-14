@@ -24,6 +24,16 @@ from singleCellExternalForceSteppables import singleCellExternalForceSteppable
 steppableInstance=singleCellExternalForceSteppable(sim,_frequency=1)
 steppableRegistry.registerSteppable(steppableInstance)
         
+
+from singleCellExternalForceSteppables import dataWriting
+instanceOfdataWriting=dataWriting(_simulator=sim,_frequency=1)
+steppableRegistry.registerSteppable(instanceOfdataWriting)
+
+
+from singleCellExternalForceSteppables import dataPloter
+instanceOfdataPloter=dataPloter(_simulator=sim,_frequency=50)
+steppableRegistry.registerSteppable(instanceOfdataPloter)
+
 CompuCellSetup.mainLoop(sim,simthread,steppableRegistry)
         
         
