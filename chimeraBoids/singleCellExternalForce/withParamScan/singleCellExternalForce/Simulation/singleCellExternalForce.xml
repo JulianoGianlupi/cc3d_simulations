@@ -4,14 +4,15 @@
    
    <!-- Basic properties of CPM (GGH) algorithm -->
    <Dimensions x="256" y="256" z="1"/>
-   <Steps>1000000</Steps>
+   <Steps>10000</Steps>
    <Temperature>10.0</Temperature>
    <NeighborOrder>1</NeighborOrder>
    <Boundary_x>Periodic</Boundary_x>
    <Boundary_y>Periodic</Boundary_y>
+   <RandomSeed>1541013593</RandomSeed>
 </Potts>
-   <Metadata>
-   <DebugOutputFrequency>1</DebugOutputFrequency>
+<Metadata>
+   <DebugOutputFrequency>100</DebugOutputFrequency>
 </Metadata>
 
    <Plugin Name="CellType">
@@ -22,7 +23,9 @@
    </Plugin>
    
    <Plugin Name="Volume"/>
-   
+   <Plugin Name="Surface">
+   </Plugin>
+
    <Plugin Name="ExternalPotential">
       
       <!-- External force applied to cell. Each cell has different force and force components have to be managed in Python. -->
