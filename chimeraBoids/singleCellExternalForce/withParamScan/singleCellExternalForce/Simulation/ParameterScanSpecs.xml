@@ -1,7 +1,7 @@
 <ParameterScan version="3.7.0">
    <OutputDirectory>parameterScan</OutputDirectory>
    <ParameterList Resource="Simulation/singleCellExternalForce.xml">
-      <Parameter CurrentIteration="0" Name="RandomSeed" Type="XML_CDATA" ValueType="int">
+      <Parameter CurrentIteration="1" Name="RandomSeed" Type="XML_CDATA" ValueType="int">
          [['CompuCell3D','Revision','20171208','Version','3.7.7'],['Potts'],['RandomSeed']]
          <Values>308202718,1001658835,1695114952,2388571069,3082027186</Values>
       </Parameter>
