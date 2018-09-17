@@ -50,6 +50,8 @@ class extraFieldsManager(SteppableBasePy):
         
         #clears the field
         self.scalarFieldPixelNeig[:, :, :] =  0
+        fourFold = {}
+        threeFold = {}
         for cell in self.cellList:
             #creates/erases the cell dict for faces
             #this is a dict of dicts, as each face will have the id of the neigh
@@ -111,57 +113,96 @@ class extraFieldsManager(SteppableBasePy):
                                     numberOfDifferentCellNeighbors)
                 
                 #now lets look at vertecies
-                if len(numberOfDifferentCellNeighbors)>2:
+                #1st i'll crete a list of pixels to create the vertex latter
+                #one of the lists will be for the 4fold pixel and another for the 3fold
+                if ((len(numberOfDifferentCellNeighbors)>3) and 
+                    ((actualPixel.x,actualPixel.y,actualPixel.z) not in fourFold.keys())):
                     
-                    #creating the vertex id.
-                    #it's going to be the the ids of the neigboring 
-                    #cells (in order) separated by ,
-                    vertexID =''
+                    
                     orgID = sorted(numberOfDifferentCellNeighbors)
-                    for neigID in orgID:
-                        vertexID+=str(neigID)+','
                     
-#                     alreadyExists = False
-#                     if alreadyExists == False:
-#                         listpx = [actualPixel.x,actualPixel.y,actualPixel.z]
-#                         cell.dict['edges'][vertexID] = [] 
+                    fourFold[(actualPixel.x,actualPixel.y,actualPixel.z)] = tuple(orgID)
+                if ((len(numberOfDifferentCellNeighbors)==3) and 
+                    ((actualPixel.x,actualPixel.y,actualPixel.z) not in threeFold.keys())):
+                    
+                    
+                    orgID = sorted(numberOfDifferentCellNeighbors)
+                    
+                    threeFold[(actualPixel.x,actualPixel.y,actualPixel.z)] = tuple(orgID)
+                #####
+                ###OLD METHOD
+#                 if len(numberOfDifferentCellNeighbors)>3:
+ 
+#                     vertexID =''
+#                     orgID = sorted(numberOfDifferentCellNeighbors)
+#                     for neigID in orgID:
+#                         vertexID+=str(neigID)+','
+
+#                     existingVIDs = list(cell.dict['edges'].keys())
+#                     if len(cell.dict['edges']) == 0:
+#                         print 'new edge', vertexID
+#                         cell.dict['edges'][vertexID] =[]
 #                         cell.dict['edges'][vertexID].append(actualPixel)
-                      
-#                         alreadyExists = True
-                        
-                    
-                    #checks if this vertex already exists or not. 
-                    #Need to check if vertexID is a subset of existing vertex aswell
-                    existingVIDs = list(cell.dict['edges'].keys())
-                    if len(cell.dict['edges']) == 0:
-                        print 'new edge', vertexID
-                        cell.dict['edges'][vertexID] =[]
-                        cell.dict['edges'][vertexID].append(actualPixel)
-#                     elif any(str(vertexID) in eVID for eVID in existingVIDs):
-#                         print 'found', vertexID, 'in'
-                    else:
-                        for evID in cell.dict['edges']:
-                            if vertexID in evID:
-                                print 'found', vertexID, 'in', evID
-                                cell.dict['edges'][evID].append(actualPixel)
-#                     for vID in cell.dict['edges']:
-#                         existingVIDs.append(vID)
-#                     for existingVID in cell.dict['edges']:
-#                         if vertexID in existingVID:
-#                             alreadyExists = True
-#                             listpx = [actualPixel.x,actualPixel.y,actualPixel.z]
-#                             if actualPixel not in cell.dict['edges'][existingVID]:
-#                                 cell.dict['edges'][existingVID].append(actualPixel)
-#                                 #print actualPixel
-#                         else:
-#                             cell.dict['edges'][vertexID] = [] 
-#                             cell.dict['edges'][vertexID].append(actualPixel)
-# #                         elif actualPixel not in cell.dict['edges'][vertexID]:
-# #                             cell.dict['edges'][vertexID].append(actualPixel)
-            
-            for edgePixel in edgePixels: ## obsolite maybe
-                for i in xrange(self.maxNeighborIndex+1):
-                    neighborPixelData = self.boundaryStrategy.getNeighborDirect(edgePixel,i)
+
+#                     else:
+#                         for evID in cell.dict['edges']:
+#                             if vertexID in evID:
+#                                 print 'found', vertexID, 'in', evID
+#                                 cell.dict['edges'][evID].append(actualPixel)
+
+        
+        #now I iterate through the marked pixels to create the vertecies
+        #1st through the 4fold, as those will be the centers.
+        verticies = {}
+        numberOfCreatedVetex = 1
+        while numberOfCreatedVetex >0:
+            numberOfCreatedVetex = 0
+            for vertexPx_1 in fourFold.keys():
+                for vertexPx_2 in fourFold.keys(): #getting the pairs
+                    if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
+                        (fourFold[vertexPx_1] == fourFold[vertexPx_2])): 
+                            #if they have the same neighboring cells they are in the same vertex
+                        if fourFold[vertexPx_1] not in verticies.keys():# if this vertex hasn't been created create it
+                            verticies[fourFold[vertexPx_1]] = [vertexPx_1,vertexPx_2]#save the pixels
+                            numberOfCreatedVetex+=1
+                        else:
+                            if vertexPx_1 not in verticies[fourFold[vertexPx_1]]:
+                                verticies[fourFold[vertexPx_1]].append(vertexPx_1)
+                                numberOfCreatedVetex+=1
+                            if vertexPx_2 not in verticies[fourFold[vertexPx_1]]:                                
+                                verticies[fourFold[vertexPx_1]].append(vertexPx_2)
+                                numberOfCreatedVetex+=1
+            print   "joined", numberOfCreatedVetex, "4 fold pixels to vertex"
+        numberOfCreatedVetex = 1
+        while numberOfCreatedVetex >0:
+            numberOfCreatedVetex = 0
+            for vertexPx_1 in threeFold.keys():
+                inExistingVertex = False
+                for existingVertex in verticies.keys():
+                    if threeFold[vertexPx_1] in existingVertex:
+                        inExistingVertex = True
+                        if vertexPx_1 not in verticies[existingVertex]:
+                            verticies[existingVertex].append(vertexPx_1)
+                            numberOfCreatedVetex+=1
+                if not inExistingVertex:
+                    for vertexPx_2 in threeFold.keys(): 
+                        if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
+                            (threeFold[vertexPx_1] == threeFold[vertexPx_2])): 
+                                #if they have the same neighboring cells they are in the same vertex
+                                if threeFold[vertexPx_1] not in verticies.keys():# if this vertex hasn't been created create it
+                                    verticies[threeFold[vertexPx_1]] = [vertexPx_1,vertexPx_2]#save the pixels
+                                    numberOfCreatedVetex+=1
+                                else:
+                                    if vertexPx_1 not in verticies[threeFold[vertexPx_1]]:
+                                        verticies[threeFold[vertexPx_1]].append(vertexPx_1)
+                                        numberOfCreatedVetex+=1
+                                    if vertexPx_2 not in verticies[threeFold[vertexPx_1]]:                                
+                                        verticies[threeFold[vertexPx_1]].append(vertexPx_2)
+                                        numberOfCreatedVetex+=1
+            print   "joined", numberOfCreatedVetex, "3 fold pixels to vertex"
+#             for edgePixel in edgePixels: ## obsolite maybe
+#                 for i in xrange(self.maxNeighborIndex+1):
+#                     neighborPixelData = self.boundaryStrategy.getNeighborDirect(edgePixel,i)
 
     def finish(self):
         # this function may be called at the end of simulation - used very infrequently though
