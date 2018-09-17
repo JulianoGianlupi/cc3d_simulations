@@ -56,32 +56,40 @@ class extraFieldsManager(SteppableBasePy):
             #cell as id.
             cell.dict['faces'] = {} 
             cell.dict['edges'] = {} 
-#             neighborArea=0
+
             for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
                 if neighbor:
-#                     neighborArea += commonSurfaceArea
+
                     #creates a dict for every face
+                    #a list of its pixels
                     cell.dict['faces'][str(neighbor.id)] = []
             
-#             print neighborArea/cell.surface
+
             #gets the boundary px for the cell
             pixelList = self.getCellBoundaryPixelList(cell)
-            edgePixels =[]
+            edgePixels =[] ## obsolite maybe
             for boundaryPixelTrackerData in pixelList:
+                
                 #counter to see number of neigh cells
                 numberOfDifferentCellNeighbors = []
+                
                 #gets the actual tuple of x,y,z
                 actualPixel = boundaryPixelTrackerData.pixel
+                
                 #goes trough neighboring pixels
                 for i in xrange(self.maxNeighborIndex+1):
+                    
                     #gets the data for the neigh px
                     neighborPixelData = self.boundaryStrategy.getNeighborDirect(actualPixel,i)
+                    
                     #gets the cell that owns that px
                     cell2=self.cellField.get(neighborPixelData.pt)
-#                     print str(cell2.id) in cell.dict['faces']
-                    #checks that the px is a face px not a edge px
-                    #also checks if it hasn't been counted yet
-                    if  (str(cell2.id) in cell.dict['faces'] 
+                    
+
+                    #checks if cell2 is actually a neigbor (don't know how it could not be, but sometimes it's not)
+                    #checks if it hasn't been counted yet
+                    if  (cell2 
+                            and str(cell2.id) in cell.dict['faces'] 
                             and actualPixel not in cell.dict['faces'][str(cell2.id)]):
                         cell.dict['faces'][str(cell2.id)].append(actualPixel)
                     
@@ -92,40 +100,66 @@ class extraFieldsManager(SteppableBasePy):
                 
                 
                            
+                
+                #separating x, y, z
                 ptx = actualPixel.x
                 pty = actualPixel.y
                 ptz = actualPixel.z
+                
+                #paints the field with the number of neighbors
                 self.scalarFieldPixelNeig[ptx, pty, ptz] = len(
                                     numberOfDifferentCellNeighbors)
+                
+                #now lets look at vertecies
                 if len(numberOfDifferentCellNeighbors)>2:
                     
+                    #creating the vertex id.
+                    #it's going to be the the ids of the neigboring 
+                    #cells (in order) separated by ,
                     vertexID =''
                     orgID = sorted(numberOfDifferentCellNeighbors)
                     for neigID in orgID:
                         vertexID+=str(neigID)+','
                     
-                    alreadyExists = False
+#                     alreadyExists = False
+#                     if alreadyExists == False:
+#                         listpx = [actualPixel.x,actualPixel.y,actualPixel.z]
+#                         cell.dict['edges'][vertexID] = [] 
+#                         cell.dict['edges'][vertexID].append(actualPixel)
+                      
+#                         alreadyExists = True
+                        
                     
                     #checks if this vertex already exists or not. 
                     #Need to check if vertexID is a subset of existing vertex aswell
-                    for existingVID in cell.dict['edges']:
-                        if vertexID in existingVID:
-                            alreadyExists = True
-                            listpx = [actualPixel.x,actualPixel.y,actualPixel.z]
-                            if actualPixel not in cell.dict['edges'][existingVID]:
-                                cell.dict['edges'][existingVID].append(actualPixel)
-                                #print actualPixel
-                    if not alreadyExists:
-#                         if vertexID not in cell.dict['edges']:
-                        listpx = [actualPixel.x,actualPixel.y,actualPixel.z]
-                        cell.dict['edges'][vertexID] = [] 
+                    existingVIDs = list(cell.dict['edges'].keys())
+                    if len(cell.dict['edges']) == 0:
+                        print 'new edge', vertexID
+                        cell.dict['edges'][vertexID] =[]
                         cell.dict['edges'][vertexID].append(actualPixel)
-                        
-                        alreadyExists = True
-#                         elif actualPixel not in cell.dict['edges'][vertexID]:
+#                     elif any(str(vertexID) in eVID for eVID in existingVIDs):
+#                         print 'found', vertexID, 'in'
+                    else:
+                        for evID in cell.dict['edges']:
+                            if vertexID in evID:
+                                print 'found', vertexID, 'in', evID
+                                cell.dict['edges'][evID].append(actualPixel)
+#                     for vID in cell.dict['edges']:
+#                         existingVIDs.append(vID)
+#                     for existingVID in cell.dict['edges']:
+#                         if vertexID in existingVID:
+#                             alreadyExists = True
+#                             listpx = [actualPixel.x,actualPixel.y,actualPixel.z]
+#                             if actualPixel not in cell.dict['edges'][existingVID]:
+#                                 cell.dict['edges'][existingVID].append(actualPixel)
+#                                 #print actualPixel
+#                         else:
+#                             cell.dict['edges'][vertexID] = [] 
 #                             cell.dict['edges'][vertexID].append(actualPixel)
+# #                         elif actualPixel not in cell.dict['edges'][vertexID]:
+# #                             cell.dict['edges'][vertexID].append(actualPixel)
             
-            for edgePixel in edgePixels:
+            for edgePixel in edgePixels: ## obsolite maybe
                 for i in xrange(self.maxNeighborIndex+1):
                     neighborPixelData = self.boundaryStrategy.getNeighborDirect(edgePixel,i)
 
