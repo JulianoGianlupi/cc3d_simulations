@@ -38,6 +38,7 @@ class extraFieldsManager(SteppableBasePy):
     def __init__(self,_simulator,_frequency=1):
         SteppableBasePy.__init__(self,_simulator,_frequency)
         self.scalarFieldPixelNeig = self.createScalarFieldPy("Bordering Pixels")
+        self.scalarFieldVertices = self.createScalarFieldPy("Vertices")
         
         
     def start(self):
@@ -46,10 +47,17 @@ class extraFieldsManager(SteppableBasePy):
         self.boundaryStrategy=CompuCell.BoundaryStrategy.getInstance()
         ##2nd order
         self.maxNeighborIndex=self.boundaryStrategy.getMaxNeighborIndexFromNeighborOrder(2)
+        
+        ##
+        self.pWVertex = self.addNewPlotWindow(_title='Vertex CM Position', _xAxisTitle='X coord',
+                                        _yAxisTitle='Y coord', _xScaleType='linear', _yScaleType='linear')
+        self.pWVertex.addPlot('Vertex_CM', _style='Dots', _color='red', _size=5)
     def step(self,mcs):
         
         #clears the field
         self.scalarFieldPixelNeig[:, :, :] =  0
+        self.scalarFieldVertices[:, :, :] =  0
+        
         fourFold = {}
         threeFold = {}
         for cell in self.cellList:
@@ -108,6 +116,8 @@ class extraFieldsManager(SteppableBasePy):
                 pty = actualPixel.y
                 ptz = actualPixel.z
                 
+                tuplePx = (ptx,pty,ptz)
+                
                 #paints the field with the number of neighbors
                 self.scalarFieldPixelNeig[ptx, pty, ptz] = len(
                                     numberOfDifferentCellNeighbors)
@@ -116,44 +126,27 @@ class extraFieldsManager(SteppableBasePy):
                 #1st i'll crete a list of pixels to create the vertex latter
                 #one of the lists will be for the 4fold pixel and another for the 3fold
                 if ((len(numberOfDifferentCellNeighbors)>3) and 
-                    ((actualPixel.x,actualPixel.y,actualPixel.z) not in fourFold.keys())):
+                    (tuplePx not in fourFold.keys())):
                     
                     
                     orgID = sorted(numberOfDifferentCellNeighbors)
                     
-                    fourFold[(actualPixel.x,actualPixel.y,actualPixel.z)] = tuple(orgID)
+                    fourFold[tuplePx] = tuple(orgID)
                 if ((len(numberOfDifferentCellNeighbors)==3) and 
-                    ((actualPixel.x,actualPixel.y,actualPixel.z) not in threeFold.keys())):
+                    (tuplePx not in threeFold.keys())):
                     
                     
                     orgID = sorted(numberOfDifferentCellNeighbors)
                     
-                    threeFold[(actualPixel.x,actualPixel.y,actualPixel.z)] = tuple(orgID)
+                    threeFold[tuplePx] = tuple(orgID)
                 #####
                 ###OLD METHOD
-#                 if len(numberOfDifferentCellNeighbors)>3:
- 
-#                     vertexID =''
-#                     orgID = sorted(numberOfDifferentCellNeighbors)
-#                     for neigID in orgID:
-#                         vertexID+=str(neigID)+','
 
-#                     existingVIDs = list(cell.dict['edges'].keys())
-#                     if len(cell.dict['edges']) == 0:
-#                         print 'new edge', vertexID
-#                         cell.dict['edges'][vertexID] =[]
-#                         cell.dict['edges'][vertexID].append(actualPixel)
-
-#                     else:
-#                         for evID in cell.dict['edges']:
-#                             if vertexID in evID:
-#                                 print 'found', vertexID, 'in', evID
-#                                 cell.dict['edges'][evID].append(actualPixel)
 
         
         #now I iterate through the marked pixels to create the vertecies
         #1st through the 4fold, as those will be the centers.
-        verticies = {}
+        self.verticies = {}
         numberOfCreatedVetex = 1
         while numberOfCreatedVetex >0:
             numberOfCreatedVetex = 0
@@ -161,45 +154,73 @@ class extraFieldsManager(SteppableBasePy):
                 for vertexPx_2 in fourFold.keys(): #getting the pairs
                     if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
                         (fourFold[vertexPx_1] == fourFold[vertexPx_2])): 
+                        tuplePX1 = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
+                        tuplePX2 = (vertexPx_2[0],vertexPx_2[1],vertexPx_2[2])
+#                         print tuplePX1, tuplePX2
                             #if they have the same neighboring cells they are in the same vertex
-                        if fourFold[vertexPx_1] not in verticies.keys():# if this vertex hasn't been created create it
-                            verticies[fourFold[vertexPx_1]] = [vertexPx_1,vertexPx_2]#save the pixels
+                        if fourFold[vertexPx_1] not in self.verticies.keys():# if this vertex hasn't been created create it
+#                             print fourFold[vertexPx_1]                           
+                            self.verticies[fourFold[vertexPx_1]] = [tuplePX1,tuplePX2]#save the pixels
                             numberOfCreatedVetex+=1
                         else:
-                            if vertexPx_1 not in verticies[fourFold[vertexPx_1]]:
-                                verticies[fourFold[vertexPx_1]].append(vertexPx_1)
+                            if vertexPx_1 not in self.verticies[fourFold[vertexPx_1]]:
+                                self.verticies[fourFold[vertexPx_1]].append(tuplePX1)
                                 numberOfCreatedVetex+=1
-                            if vertexPx_2 not in verticies[fourFold[vertexPx_1]]:                                
-                                verticies[fourFold[vertexPx_1]].append(vertexPx_2)
+                            if vertexPx_2 not in self.verticies[fourFold[vertexPx_1]]:                                
+                                self.verticies[fourFold[vertexPx_1]].append(tuplePX2)
                                 numberOfCreatedVetex+=1
-            print   "joined", numberOfCreatedVetex, "4 fold pixels to vertex"
+#             print   "joined", numberOfCreatedVetex, "4 fold pixels to vertex"
         numberOfCreatedVetex = 1
         while numberOfCreatedVetex >0:
             numberOfCreatedVetex = 0
             for vertexPx_1 in threeFold.keys():
                 inExistingVertex = False
-                for existingVertex in verticies.keys():
+                tuplePX1 = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
+#                 print tuplePX1
+                for existingVertex in self.verticies.keys():
                     if threeFold[vertexPx_1] in existingVertex:
                         inExistingVertex = True
-                        if vertexPx_1 not in verticies[existingVertex]:
-                            verticies[existingVertex].append(vertexPx_1)
+                        if vertexPx_1 not in self.verticies[existingVertex]:
+                            self.verticies[existingVertex].append(tuplePX1)
                             numberOfCreatedVetex+=1
                 if not inExistingVertex:
                     for vertexPx_2 in threeFold.keys(): 
+                        tuplePX2 = (vertexPx_2[0],vertexPx_2[1],vertexPx_2[2])
+#                         print tuplePX1
                         if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
                             (threeFold[vertexPx_1] == threeFold[vertexPx_2])): 
                                 #if they have the same neighboring cells they are in the same vertex
-                                if threeFold[vertexPx_1] not in verticies.keys():# if this vertex hasn't been created create it
-                                    verticies[threeFold[vertexPx_1]] = [vertexPx_1,vertexPx_2]#save the pixels
+                                if threeFold[vertexPx_1] not in self.verticies.keys():# if this vertex hasn't been created create it
+                                    self.verticies[threeFold[vertexPx_1]] = [tuplePX1,tuplePX2]#save the pixels
                                     numberOfCreatedVetex+=1
                                 else:
-                                    if vertexPx_1 not in verticies[threeFold[vertexPx_1]]:
-                                        verticies[threeFold[vertexPx_1]].append(vertexPx_1)
+                                    if vertexPx_1 not in self.verticies[threeFold[vertexPx_1]]:
+                                        self.verticies[threeFold[vertexPx_1]].append(tuplePX1)
                                         numberOfCreatedVetex+=1
-                                    if vertexPx_2 not in verticies[threeFold[vertexPx_1]]:                                
-                                        verticies[threeFold[vertexPx_1]].append(vertexPx_2)
+                                    if vertexPx_2 not in self.verticies[threeFold[vertexPx_1]]:                                
+                                        self.verticies[threeFold[vertexPx_1]].append(tuplePX2)
                                         numberOfCreatedVetex+=1
             print   "joined", numberOfCreatedVetex, "3 fold pixels to vertex"
+
+
+        
+        if mcs%10==0:
+            self.pWVertex.eraseAllData()
+            for vertexID, vertexPXs in self.verticies.iteritems():
+    #             print len(vertexPXs)
+                vertexCMx = 0
+                vertexCMy = 0
+                vertexCMz = 0
+                pxColor = 0
+                for j in  vertexID:
+                    pxColor +=j 
+                print pxColor
+                for pixel in vertexPXs:
+                    self.scalarFieldVertices[pixel[0], pixel[1], pixel[2]] = pxColor
+                    vertexCMx += pixel[0]/len(vertexPXs)
+                    vertexCMy += pixel[1]/len(vertexPXs)
+                    vertexCMz += pixel[2]/len(vertexPXs)
+                self.pWVertex.addDataPoint("Vertex_CM", vertexCMx, vertexCMy)
 #             for edgePixel in edgePixels: ## obsolite maybe
 #                 for i in xrange(self.maxNeighborIndex+1):
 #                     neighborPixelData = self.boundaryStrategy.getNeighborDirect(edgePixel,i)
@@ -224,32 +245,13 @@ class scatterFaceVertex(SteppableBasePy):
         SteppableBasePy.__init__(self,_simulator,_frequency)
         
     def start(self):
-        self.pWVertex = self.addNewPlotWindow(_title='Vertex CM Position', _xAxisTitle='X coord',
-                                        _yAxisTitle='Y coord', _xScaleType='linear', _yScaleType='linear')
-        self.pWVertex.addPlot('Vertex_CM', _style='Dots', _color='red', _size=5)
-        
-        
-        
+        pass
+
         
         
     def step(self,mcs):
-        self.pWVertex.eraseAllData()
-        for cell in self.cellList:
-            vertecies = cell.dict['edges']
-            for key in vertecies:
-                vCMx = 0
-                vCMy = 0
-                vertex = vertecies.get(key)
-                for px in vertex:
-                    vCMx += px.x/len(vertex)
-                    vCMy += px.y/len(vertex)
-                
-            
-                    #vCMx += int(px[0])/len(key)
-                    #vCMy += int(px[1])/len(key)
-                    
-                
-                self.pWVertex.addDataPoint("Vertex_CM", vCMx, vCMy)
+        pass
+
             
     def finish(self):
         # this function may be called at the end of simulation - used very infrequently though
