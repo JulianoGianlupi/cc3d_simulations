@@ -169,7 +169,7 @@ class extraFieldsManager(SteppableBasePy):
                             if vertexPx_2 not in self.verticies[fourFold[vertexPx_1]]:                                
                                 self.verticies[fourFold[vertexPx_1]].append(tuplePX2)
                                 numberOfCreatedVetex+=1
-#             print   "joined", numberOfCreatedVetex, "4 fold pixels to vertex"
+            print   "joined", numberOfCreatedVetex, "4 fold pixels to vertex"
         numberOfCreatedVetex = 1
         while numberOfCreatedVetex >0:
             numberOfCreatedVetex = 0
@@ -204,23 +204,23 @@ class extraFieldsManager(SteppableBasePy):
 
 
         
-        if mcs%10==0:
-            self.pWVertex.eraseAllData()
-            for vertexID, vertexPXs in self.verticies.iteritems():
-    #             print len(vertexPXs)
-                vertexCMx = 0
-                vertexCMy = 0
-                vertexCMz = 0
-                pxColor = 0
-                for j in  vertexID:
-                    pxColor +=j 
-                print pxColor
-                for pixel in vertexPXs:
-                    self.scalarFieldVertices[pixel[0], pixel[1], pixel[2]] = pxColor
-                    vertexCMx += pixel[0]/len(vertexPXs)
-                    vertexCMy += pixel[1]/len(vertexPXs)
-                    vertexCMz += pixel[2]/len(vertexPXs)
-                self.pWVertex.addDataPoint("Vertex_CM", vertexCMx, vertexCMy)
+        #if mcs%10==0:
+        self.pWVertex.eraseAllData()
+        for vertexID, vertexPXs in self.verticies.iteritems():
+#             print len(vertexPXs)
+            vertexCMx = 0
+            vertexCMy = 0
+            vertexCMz = 0
+            pxColor = 0
+            for j in vertexID:
+                pxColor +=j 
+#                 print pxColor
+            for pixel in vertexPXs:
+                self.scalarFieldVertices[pixel[0], pixel[1], pixel[2]] = pxColor
+                vertexCMx += pixel[0]/len(vertexPXs)
+                vertexCMy += pixel[1]/len(vertexPXs)
+                vertexCMz += pixel[2]/len(vertexPXs)
+            self.pWVertex.addDataPoint("Vertex_CM", vertexCMx, vertexCMy)
 #             for edgePixel in edgePixels: ## obsolite maybe
 #                 for i in xrange(self.maxNeighborIndex+1):
 #                     neighborPixelData = self.boundaryStrategy.getNeighborDirect(edgePixel,i)

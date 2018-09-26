@@ -17,7 +17,7 @@
    <Steps>100000</Steps>
    <Temperature>10.0</Temperature>
    <NeighborOrder>1</NeighborOrder>
-<!--     <LatticeType>Hexagonal</LatticeType>  -->
+<!--      <LatticeType>Hexagonal</LatticeType>   -->
 <!--    <Boundary_x>Periodic</Boundary_x> -->
 <!--    <Boundary_y>Periodic</Boundary_y> -->
 </Potts>
