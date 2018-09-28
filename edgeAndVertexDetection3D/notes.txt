@@ -1,0 +1,8 @@
+face detection should be the same
+
+need to define plateau borders.
+
+need to change the definition of vertecies.
+
+some of the px that belong to the pb that also belong to the vertex. if i 
+implement pb the same way I did the faces I hould be good
