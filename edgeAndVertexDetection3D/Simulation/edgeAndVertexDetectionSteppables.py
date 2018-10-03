@@ -39,6 +39,7 @@ class extraFieldsManager(SteppableBasePy):
         SteppableBasePy.__init__(self,_simulator,_frequency)
         self.scalarFieldPixelNeig = self.createScalarFieldPy("Bordering Pixels")
         self.scalarFieldVertices = self.createScalarFieldPy("Vertices")
+        self.scalarFieldPlateaus = self.createScalarFieldPy("Plateaus")
         
         
     def start(self):
@@ -57,13 +58,16 @@ class extraFieldsManager(SteppableBasePy):
         #clears the field
         self.scalarFieldPixelNeig[:, :, :] =  0
         self.scalarFieldVertices[:, :, :] =  0
+        self.scalarFieldPlateaus[:, :, :] =  0
         
+        fiveFold = {}
         fourFold = {}
         threeFold = {}
         for cell in self.cellList:
             #creates/erases the cell dict for faces
             #this is a dict of dicts, as each face will have the id of the neigh
             #cell as id.
+            cell.dict['plateaus'] = {}
             cell.dict['faces'] = {} 
             cell.dict['edges'] = {} 
 
@@ -119,13 +123,12 @@ class extraFieldsManager(SteppableBasePy):
                 tuplePx = (ptx,pty,ptz)
                 
                 #paints the field with the number of neighbors
-                self.scalarFieldPixelNeig[ptx, pty, ptz] = len(
-                                    numberOfDifferentCellNeighbors)
+                self.scalarFieldPixelNeig[ptx, pty, ptz] = len(numberOfDifferentCellNeighbors)
                 
                 #now lets look at vertecies
                 #1st i'll crete a list of pixels to create the vertex latter
                 #one of the lists will be for the 4fold pixel and another for the 3fold
-                if ((len(numberOfDifferentCellNeighbors)>3) and 
+                if ((len(numberOfDifferentCellNeighbors)==4) and 
                     (tuplePx not in fourFold.keys())):
                     
                     
@@ -139,8 +142,7 @@ class extraFieldsManager(SteppableBasePy):
                     orgID = sorted(numberOfDifferentCellNeighbors)
                     
                     threeFold[tuplePx] = tuple(orgID)
-                #####
-                ###OLD METHOD
+                
 
 
         
@@ -170,60 +172,94 @@ class extraFieldsManager(SteppableBasePy):
                                 self.verticies[fourFold[vertexPx_1]].append(tuplePX2)
                                 numberOfCreatedVetex+=1
             print   "joined", numberOfCreatedVetex, "4 fold pixels to vertex"
-        numberOfCreatedVetex = 1
-        while numberOfCreatedVetex >0:
-            numberOfCreatedVetex = 0
+        
+        
+        
+#         numberOfCreatedVetex = 1
+#         while numberOfCreatedVetex >0:
+#             numberOfCreatedVetex = 0
+#             for vertexPx_1 in threeFold.keys():
+#                 inExistingVertex = False
+#                 tuplePX1 = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
+# # #                 print tuplePX1
+#                 for existingVertex in self.verticies.keys():
+#                     if threeFold[vertexPx_1] in existingVertex:
+#                         inExistingVertex = True
+#                         if vertexPx_1 not in self.verticies[existingVertex]:
+#                             self.verticies[existingVertex].append(tuplePX1)
+#                             numberOfCreatedVetex+=1
+#             print   "joined", numberOfCreatedVetex, "3 fold pixels to vertex"
+        
+        
+        
+        self.plateaus = {}
+        numberOfCreatedPlateaus = 1
+        while numberOfCreatedPlateaus > 0:
+            numberOfCreatedPlateaus = 0
             for vertexPx_1 in threeFold.keys():
-                inExistingVertex = False
-                tuplePX1 = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
-#                 print tuplePX1
-                for existingVertex in self.verticies.keys():
-                    if threeFold[vertexPx_1] in existingVertex:
-                        inExistingVertex = True
-                        if vertexPx_1 not in self.verticies[existingVertex]:
-                            self.verticies[existingVertex].append(tuplePX1)
-                            numberOfCreatedVetex+=1
-                if not inExistingVertex:
-                    for vertexPx_2 in threeFold.keys(): 
-                        tuplePX2 = (vertexPx_2[0],vertexPx_2[1],vertexPx_2[2])
-#                         print tuplePX1
-                        if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
-                            (threeFold[vertexPx_1] == threeFold[vertexPx_2])): 
-                                #if they have the same neighboring cells they are in the same vertex
-                                if threeFold[vertexPx_1] not in self.verticies.keys():# if this vertex hasn't been created create it
-                                    self.verticies[threeFold[vertexPx_1]] = [tuplePX1,tuplePX2]#save the pixels
-                                    numberOfCreatedVetex+=1
-                                else:
-                                    if vertexPx_1 not in self.verticies[threeFold[vertexPx_1]]:
-                                        self.verticies[threeFold[vertexPx_1]].append(tuplePX1)
-                                        numberOfCreatedVetex+=1
-                                    if vertexPx_2 not in self.verticies[threeFold[vertexPx_1]]:                                
-                                        self.verticies[threeFold[vertexPx_1]].append(tuplePX2)
-                                        numberOfCreatedVetex+=1
-            print   "joined", numberOfCreatedVetex, "3 fold pixels to vertex"
+                for vertexPx_2 in threeFold.keys():
+                    if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
+                        (threeFold[vertexPx_1] == threeFold[vertexPx_2])): 
+                            tuplePX1 = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
+                            tuplePX2 = (vertexPx_2[0],vertexPx_2[1],vertexPx_2[2])
+                            if threeFold[vertexPx_1] not in self.plateaus.keys():
+                                self.plateaus[threeFold[vertexPx_1]] = [tuplePX1,tuplePX2]
+                                numberOfCreatedPlateaus += 1
+                            else:
+                                if vertexPx_1 not in self.plateaus[threeFold[vertexPx_1]]:
+                                    self.plateaus[threeFold[vertexPx_1]].append(tuplePX1)
+                                    numberOfCreatedPlateaus += 1
+                                if vertexPx_2 not in self.plateaus[threeFold[vertexPx_1]]:   
+                                    self.plateaus[threeFold[vertexPx_1]].append(tuplePX2)
+                                    numberOfCreatedPlateaus += 1       
+            print   "joined", numberOfCreatedVetex, "3 fold pixels to plateaus"
+
+
+#                 if not inExistingVertex:
+#                     for vertexPx_2 in threeFold.keys(): 
+#                         tuplePX2 = (vertexPx_2[0],vertexPx_2[1],vertexPx_2[2])
+# #                         print tuplePX1
+#                         if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
+#                             (threeFold[vertexPx_1] == threeFold[vertexPx_2])): 
+#                                 #if they have the same neighboring cells they are in the same vertex
+#                                 if threeFold[vertexPx_1] not in self.verticies.keys():# if this vertex hasn't been created create it
+#                                     self.verticies[threeFold[vertexPx_1]] = [tuplePX1,tuplePX2]#save the pixels
+#                                     numberOfCreatedVetex+=1
+#                                 else:
+#                                     if vertexPx_1 not in self.verticies[threeFold[vertexPx_1]]:
+#                                         self.verticies[threeFold[vertexPx_1]].append(tuplePX1)
+#                                         numberOfCreatedVetex+=1
+#                                     if vertexPx_2 not in self.verticies[threeFold[vertexPx_1]]:                                
+#                                         self.verticies[threeFold[vertexPx_1]].append(tuplePX2)
+#                                         numberOfCreatedVetex+=1
+            
 
 
         
-        #if mcs%10==0:
-        self.pWVertex.eraseAllData()
+        
+#         self.pWVertex.eraseAllData()
         for vertexID, vertexPXs in self.verticies.iteritems():
-#             print len(vertexPXs)
-            vertexCMx = 0
-            vertexCMy = 0
-            vertexCMz = 0
+
+#             vertexCMx = 0
+#             vertexCMy = 0
+#             vertexCMz = 0
             pxColor = 0
             for j in vertexID:
                 pxColor +=j 
-#                 print pxColor
+# #                 print pxColor
             for pixel in vertexPXs:
                 self.scalarFieldVertices[pixel[0], pixel[1], pixel[2]] = pxColor
-                vertexCMx += pixel[0]/len(vertexPXs)
-                vertexCMy += pixel[1]/len(vertexPXs)
-                vertexCMz += pixel[2]/len(vertexPXs)
-            self.pWVertex.addDataPoint("Vertex_CM", vertexCMx, vertexCMy)
-#             for edgePixel in edgePixels: ## obsolite maybe
-#                 for i in xrange(self.maxNeighborIndex+1):
-#                     neighborPixelData = self.boundaryStrategy.getNeighborDirect(edgePixel,i)
+#                 vertexCMx += pixel[0]/len(vertexPXs)
+#                 vertexCMy += pixel[1]/len(vertexPXs)
+#                 vertexCMz += pixel[2]/len(vertexPXs)
+#             self.pWVertex.addDataPoint("Vertex_CM", vertexCMx, vertexCMy)
+
+        for vertexID, vertexPXs in self.plateaus.iteritems():
+            pxColor = 0
+            for j in vertexID:
+                pxColor += j
+            for pixel in vertexPXs:
+                self.scalarFieldPlateaus[pixel[0], pixel[1], pixel[2]] = pxColor
 
     def finish(self):
         # this function may be called at the end of simulation - used very infrequently though
