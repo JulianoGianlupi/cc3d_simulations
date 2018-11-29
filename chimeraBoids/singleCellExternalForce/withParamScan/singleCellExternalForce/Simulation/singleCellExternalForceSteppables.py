@@ -11,10 +11,10 @@ import os
 
 global G_targetVolume_G, G_lambda_Volume_G,G_forceAngle_G, G_forceModulus_G
 
-G_forceAngle_G = 1
+G_forceAngle_G = 1.
 #the number given in the parameter scan is the angle in rads divided by pi multiplied by 12, 
 #this is done in order to avoid a repeating decimal (might have to redo, but works for pi/6, pi/4, pi/2)
-G_forceAngle_G *= np.pi/12. 
+G_forceAngle_G = float(G_forceAngle_G)* np.pi/12. 
 
 G_forceModulus_G = 1
 #it's actually the energy, and f = -grad energy

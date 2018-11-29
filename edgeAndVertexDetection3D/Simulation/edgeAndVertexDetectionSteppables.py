@@ -128,7 +128,7 @@ class extraFieldsManager(SteppableBasePy):
                 #now lets look at vertecies
                 #1st i'll crete a list of pixels to create the vertex latter
                 #one of the lists will be for the 4fold pixel and another for the 3fold
-                if ((len(numberOfDifferentCellNeighbors)==4) and 
+                if ((len(numberOfDifferentCellNeighbors)>=4) and 
                     (tuplePx not in fourFold.keys())):
                     
                     
@@ -144,34 +144,87 @@ class extraFieldsManager(SteppableBasePy):
                     threeFold[tuplePx] = tuple(orgID)
                 
 
-
+        max_neighbors = 0
+        distribution_numb_neigbs = {}
+        for pixel, neighbs in fourFold.iteritems():
+            aux = max_neighbors
+            max_neighbors = max(max_neighbors,len(neighbs))
+            if str(len(neighbs)) not in distribution_numb_neigbs.keys():
+                distribution_numb_neigbs[str(len(neighbs))] = 1
+            else:
+                distribution_numb_neigbs[str(len(neighbs))] += 1
+            
+            
+        
+        
+        self.verticies = {}
+        for number_neigs in range(max_neighbors,3,-1):
+                numberOfCreatedVetex = 1
+                while numberOfCreatedVetex >0:
+                    numberOfCreatedVetex = 0
+                    for vertexPx_1 in fourFold.keys():                        
+                        if len(fourFold[vertexPx_1]) == number_neigs:
+                            isolatedPixel = True #the pixel might be the only in that vertex with that many neighbs
+                            for vertexPx_2 in fourFold.keys():
+                                if len(fourFold[vertexPx_2]) == number_neigs:
+                                    if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
+                                        (fourFold[vertexPx_1] == fourFold[vertexPx_2])): 
+                                            isolatedPixel = False
+                                            tuplePX1 = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
+                                            tuplePX2 = (vertexPx_2[0],vertexPx_2[1],vertexPx_2[2])
+                                            if fourFold[vertexPx_1] not in self.verticies.keys():
+                                                # if this vertex hasn't been created create it
+                                                self.verticies[fourFold[vertexPx_1]] = [tuplePX1,tuplePX2]#save the pixels
+                                                numberOfCreatedVetex+=1
+                                            else:   
+                                                if vertexPx_1 not in self.verticies[fourFold[vertexPx_1]]:
+                                                    self.verticies[fourFold[vertexPx_1]].append(tuplePX1)
+                                                    numberOfCreatedVetex+=1
+                                                if vertexPx_2 not in self.verticies[fourFold[vertexPx_1]]:
+                                                    self.verticies[fourFold[vertexPx_1]].append(tuplePX2)
+                                                    numberOfCreatedVetex+=1
+                            if isolatedPixel == True: 
+                                tuplePX = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
+                                if fourFold[vertexPx_1] not in self.verticies.keys():
+                                    self.verticies[fourFold[vertexPx_1]] = [tuplePX]
+                                    numberOfCreatedVetex+=1
+                                elif vertexPx_1 not in self.verticies[fourFold[vertexPx_1]]:
+                                    self.verticies[fourFold[vertexPx_1]].append(tuplePX)
+#                                 vertexPx_1 not in self.verticies[fourFold[vertexPx_1]]):
+                                
+                                
+                    print   "joined", numberOfCreatedVetex, number_neigs," fold pixels to vertex"
+        
+        
+        
+        
         
         #now I iterate through the marked pixels to create the vertecies
         #1st through the 4fold, as those will be the centers.
-        self.verticies = {}
-        numberOfCreatedVetex = 1
-        while numberOfCreatedVetex >0:
-            numberOfCreatedVetex = 0
-            for vertexPx_1 in fourFold.keys():
-                for vertexPx_2 in fourFold.keys(): #getting the pairs
-                    if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
-                        (fourFold[vertexPx_1] == fourFold[vertexPx_2])): 
-                        tuplePX1 = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
-                        tuplePX2 = (vertexPx_2[0],vertexPx_2[1],vertexPx_2[2])
-#                         print tuplePX1, tuplePX2
-                            #if they have the same neighboring cells they are in the same vertex
-                        if fourFold[vertexPx_1] not in self.verticies.keys():# if this vertex hasn't been created create it
-#                             print fourFold[vertexPx_1]                           
-                            self.verticies[fourFold[vertexPx_1]] = [tuplePX1,tuplePX2]#save the pixels
-                            numberOfCreatedVetex+=1
-                        else:
-                            if vertexPx_1 not in self.verticies[fourFold[vertexPx_1]]:
-                                self.verticies[fourFold[vertexPx_1]].append(tuplePX1)
-                                numberOfCreatedVetex+=1
-                            if vertexPx_2 not in self.verticies[fourFold[vertexPx_1]]:                                
-                                self.verticies[fourFold[vertexPx_1]].append(tuplePX2)
-                                numberOfCreatedVetex+=1
-            print   "joined", numberOfCreatedVetex, "4 fold pixels to vertex"
+        
+#         numberOfCreatedVetex = 1
+#         while numberOfCreatedVetex >0:
+#             numberOfCreatedVetex = 0
+#             for vertexPx_1 in fourFold.keys():
+#                 for vertexPx_2 in fourFold.keys(): #getting the pairs
+#                     if ((vertexPx_1 != vertexPx_2) and # a px with itself makes no sense
+#                         (fourFold[vertexPx_1] == fourFold[vertexPx_2])): 
+#                         tuplePX1 = (vertexPx_1[0],vertexPx_1[1],vertexPx_1[2])
+#                         tuplePX2 = (vertexPx_2[0],vertexPx_2[1],vertexPx_2[2])
+# #                         print tuplePX1, tuplePX2
+#                             #if they have the same neighboring cells they are in the same vertex
+#                         if fourFold[vertexPx_1] not in self.verticies.keys():# if this vertex hasn't been created create it
+# #                             print fourFold[vertexPx_1]                           
+#                             self.verticies[fourFold[vertexPx_1]] = [tuplePX1,tuplePX2]#save the pixels
+#                             numberOfCreatedVetex+=1
+#                         else:
+#                             if vertexPx_1 not in self.verticies[fourFold[vertexPx_1]]:
+#                                 self.verticies[fourFold[vertexPx_1]].append(tuplePX1)
+#                                 numberOfCreatedVetex+=1
+#                             if vertexPx_2 not in self.verticies[fourFold[vertexPx_1]]:                                
+#                                 self.verticies[fourFold[vertexPx_1]].append(tuplePX2)
+#                                 numberOfCreatedVetex+=1
+#             print   "joined", numberOfCreatedVetex, "4 fold pixels to vertex"
         
         
         
@@ -243,9 +296,9 @@ class extraFieldsManager(SteppableBasePy):
 #             vertexCMx = 0
 #             vertexCMy = 0
 #             vertexCMz = 0
-            pxColor = 0
-            for j in vertexID:
-                pxColor +=j 
+            pxColor = 10
+#             for j in vertexID:
+#                 pxColor +=j 
 # #                 print pxColor
             for pixel in vertexPXs:
                 self.scalarFieldVertices[pixel[0], pixel[1], pixel[2]] = pxColor

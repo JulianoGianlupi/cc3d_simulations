@@ -81,7 +81,7 @@
           <BoxMin x="0" y="0" z="0"/> 
           <BoxMax x="50" y="50" z="50"/> 
           <Gap>0</Gap> 
-          <Width>25</Width> 
+          <Width>10</Width> 
           <Types>cell</Types> 
      </Region> 
   </Steppable> 
