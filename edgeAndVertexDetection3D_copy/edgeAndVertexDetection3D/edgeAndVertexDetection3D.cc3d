@@ -1,0 +1,5 @@
+<Simulation version="3.6.2">
+   <XMLScript Type="XMLScript">Simulation/edgeAndVertexDetection.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/edgeAndVertexDetection.py</PythonScript>
+   <Resource Type="Python">Simulation/edgeAndVertexDetectionSteppables.py</Resource>
+</Simulation>
