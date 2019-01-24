@@ -1,0 +1,10 @@
+<CompuCell3DLatticeData Version="1.0">
+   <Dimensions x="254" y="254" z="1"/>
+   <Lattice Type="Square"/>
+   <Output CoreFileName="Step" Directory="C:\Users\jferrari\Documents\cc3d_simulations\edgeAndVertexDetection3D_copy\edgeAndVertexDetection3D\chimeraBoidsV2_cc3d_01_24_2019_11_16_06\LatticeData" Frequency="1" NumberOfSteps="1000000"/>
+   <CellType TypeId="0" TypeName="Medium"/>
+   <CellType TypeId="1" TypeName="boidsA"/>
+   <Fields>
+      <Field Name="Cell_Field" Type="CellField"/>
+   </Fields>
+</CompuCell3DLatticeData>

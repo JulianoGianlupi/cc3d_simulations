@@ -57,25 +57,29 @@ class chimeraBoidsSteppable(SteppableBasePy):
         
         #cell initiation and dictionaries creation
         for cell in self.cellList:
-            cell.targetVolume = self.targetVolume
-            cell.lambdaVolume = self.lambdaVolume
-            
-            
-            cell.dict['forceAngle'] = np.random.uniform(-np.pi,np.pi)
-            cell.dict['angle']=cell.dict['forceAngle']
-            
-            cell.dict['centerMassX'] = [cell.xCOM]
-            cell.dict['centerMassY'] = [cell.yCOM]
-            cell.dict['centerMass'] = [np.sqrt(cell.xCOM*cell.xCOM + cell.yCOM*cell.yCOM)]
-            
-            cell.dict['velocityX'] = 0.
-            cell.dict['velocityY'] = 0.
-            
-            cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-            cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle']) 
-            
-            cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-            cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
+            if cell:
+                cell.targetVolume = self.targetVolume
+                cell.lambdaVolume = self.lambdaVolume
+                
+                
+                cell.dict['forceAngle'] = np.random.uniform(-np.pi,np.pi)
+                cell.dict['angle']=cell.dict['forceAngle']
+                
+                cell.dict['centerMassX'] = [cell.xCOM]
+                cell.dict['centerMassY'] = [cell.yCOM]
+                cell.dict['centerMass'] = [np.sqrt(cell.xCOM*cell.xCOM + cell.yCOM*cell.yCOM)]
+                
+                cell.dict['positionX'] = [cell.xCOM]
+                cell.dict['positionY'] = [cell.yCOM]
+                
+                cell.dict['velocityX'] = 0.
+                cell.dict['velocityY'] = 0.
+                
+                cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle']) 
+                
+                cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
             #cell.lambdaVecZ = 0.0  
             #
     def step(self,mcs):        
