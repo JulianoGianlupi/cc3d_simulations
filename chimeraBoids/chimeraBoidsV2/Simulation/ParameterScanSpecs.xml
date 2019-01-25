@@ -1,0 +1,35 @@
+<ParameterScan version="3.7.0">
+   <OutputDirectory>chimeraBoidsV2_ParameterScan</OutputDirectory>
+   <ParameterList Resource="Simulation/chimeraBoidsV2.xml">
+      <Parameter CurrentIteration="0" Name="Energy" Type="XML_CDATA" ValueType="float">
+         [['CompuCell3D','Revision','20180722','Version','3.7.8'],['Plugin','Name','Contact'],['Energy','Type1','boidsA','Type2','boidsA']]
+         <Values>5.0,10.0,20.0,30.0,40.0,50.0,75.0,100.0</Values>
+      </Parameter>
+   </ParameterList>
+   <ParameterList Resource="Simulation/chimeraBoidsV2Steppables.py">
+      <Parameter CurrentIteration="0" Name="G_targetVolume_G" Type="PYTHON_GLOBAL" ValueType="float">
+         <Values>64.0</Values>
+      </Parameter>
+      <Parameter CurrentIteration="0" Name="G_lambdaVolume_G" Type="PYTHON_GLOBAL" ValueType="float">
+         <Values>8.0</Values>
+      </Parameter>
+      <Parameter CurrentIteration="0" Name="G_forceModulus_G" Type="PYTHON_GLOBAL" ValueType="float">
+         <Values>-20.0</Values>
+      </Parameter>
+      <Parameter CurrentIteration="0" Name="G_deltaTime_G" Type="PYTHON_GLOBAL" ValueType="int">
+         <Values>10</Values>
+      </Parameter>
+      <Parameter CurrentIteration="0" Name="G_alphaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
+         <Values>5.5</Values>
+      </Parameter>
+      <Parameter CurrentIteration="0" Name="G_betaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
+         <Values>1.5</Values>
+      </Parameter>
+      <Parameter CurrentIteration="0" Name="G_gammaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
+         <Values>0.5</Values>
+      </Parameter>
+      <Parameter CurrentIteration="0" Name="G_deltaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
+         <Values>0.1</Values>
+      </Parameter>
+   </ParameterList>
+</ParameterScan>

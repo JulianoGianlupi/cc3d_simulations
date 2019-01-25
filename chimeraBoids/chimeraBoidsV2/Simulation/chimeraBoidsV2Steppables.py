@@ -7,6 +7,31 @@ import numpy as np
 import os
 
 
+global G_targetVolume_G
+global G_lambdaVolume_G
+global G_forceModulus_G
+global G_deltaTime_G
+
+global G_alphaBoids_G
+global G_betaBoids_G
+global G_gammaBoids_G
+global G_deltaBoids_G
+
+
+#parameter scan variables
+G_targetVolume_G = 64.
+G_lambdaVolume_G = 8.
+G_forceModulus_G = -20
+G_deltaTime_G = 10
+
+G_alphaBoids_G = 5.5
+G_betaBoids_G = 1.5
+G_gammaBoids_G = .5
+G_deltaBoids_G = .1
+
+
+
+
 class chimeraBoidsV2Steppable(SteppableBasePy):
 
     def __init__(self,_simulator,_frequency=1):
@@ -26,17 +51,16 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         # any code in the start function runs before MCS=0
         
         #constants
-        self.targetVolume = 64.
-        self.lambdaVolume = 8.
-        self.forceModulus = -20
-        self.forceCounter = 0
-        self.deltaTime = 10
+        self.targetVolume = G_targetVolume_G
+        self.lambdaVolume = G_lambdaVolume_G
+        self.forceModulus = G_forceModulus_G
+        self.deltaTime = G_deltaTime_G
         
         #boids parameters
-        self.alphaBoids = 5.5
-        self.betaBoids = 1.5
-        self.gammaBoids = .5
-        self.deltaBoids = .1
+        self.alphaBoids = G_alphaBoids_G
+        self.betaBoids = G_betaBoids_G
+        self.gammaBoids = G_gammaBoids_G
+        self.deltaBoids = G_deltaBoids_G
         
         #assigning parameters
         for cell in self.cellList:
