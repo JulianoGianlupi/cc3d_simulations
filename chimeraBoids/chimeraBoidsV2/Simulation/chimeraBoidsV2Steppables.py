@@ -230,6 +230,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         ## there's also the issue of tracking the used IDs.
         #self.usedClusterIDs
         
+        equivalentIDs = []
         #first loop for id assignment
         for cell in self.cellList:
             if len(self.getCellNeighborDataList(cell)) == 0:
@@ -258,10 +259,21 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
                     if neighbor: 
                         neighbor.dict['clusterID'] = id
-                
+            
+            if len(neigsIDs) > 1 and sorted(neigsIDs) not in equivalentIDs:
+                equivalentIDs.append(sorted(neigsIDs))
         
         #second loop for id fixing
-#         for 
+        inUseClusterIDs = []##will use this to assign colors
+        for cell in self.cellList:
+            for e in equivalentIDs:
+                for notSmalestID in e[1:]:
+                    if cell.dict['clusterID'] == notSmalestID:
+                        cell.dict['clusterID'] = e[0]
+                        #return
+            inUseClusterIDs.append(cell.dict['clusterID'])
+        
+        inUseClusterIDs = set(inUseClusterIDs)
         
         #updating extra fields
         self.updateFields(mcs)
