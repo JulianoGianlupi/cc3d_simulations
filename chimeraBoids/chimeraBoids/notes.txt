@@ -1,2 +1,4 @@
 Is the noise on the boids force nescessary? Afterall it represents a temperature,
 and cpm already has a temperature.
+
+Need to add a cluster identification algorithm

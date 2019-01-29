@@ -62,6 +62,9 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.gammaBoids = G_gammaBoids_G
         self.deltaBoids = G_deltaBoids_G
         
+        #set of used cluster IDs
+        self.usedClusterIDs = set([0])#I think that to avoid possible errors it's best if the set is not
+#                                   #empty
         #assigning parameters
         for cell in self.cellList:
             if cell:
@@ -90,6 +93,9 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 
                 cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
                 cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
+                
+                #cluster ID
+                cell.dict['clusterID'] = None
     
 
     def positionTracking(self,mcs,cur_Cell):
@@ -171,6 +177,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
     def step(self,mcs):        
         #type here the code that will run every _frequency MCS
         
+        #############################################################
         #first cell loop to update tracking of position and velocities
         for cell in self.cellList:
             if cell:
@@ -187,7 +194,9 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                     
                     cell.dict['velocityX_deltaT'] = vx
                     cell.dict['velocityY_deltaT'] = vy
+        ##############################################################
         
+        #################################################
         #second cell loop to calculate the boid's force 
         if mcs > self.deltaTime:
             for cell in self.cellList:
@@ -212,6 +221,49 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                
                 cell.dict['previousForceX'] = forceX
                 cell.dict['previousForceY'] = forceY 
+        #####################################################
+        
+        ##I need to identify the clusters. The most straitforward way I can think is
+        ## simply looping the cells, checking the neighbors and assingning a colective ID. If the
+        ## neighbor already has an ID use that one instead. Of course, this may lead to a single
+        ## cluster having multiple IDs, so a second pass will be necessary. 
+        ## there's also the issue of tracking the used IDs.
+        #self.usedClusterIDs
+        
+        #first loop for id assignment
+        for cell in self.cellList:
+            if len(self.getCellNeighborDataList(cell)) == 0:
+                cell.dict['clusterID'] = None
+                break
+            
+            neigsIDs = []
+            if cell.dict['clusterID'] != None:
+                neigsIDs.append(cell.dict['clusterID'])
+            
+            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                if neighbor: 
+                    if neighbor.dict['clusterID'] != None:
+                        neigsIDs.append(neighbor.dict['clusterID'])
+            
+            if len(neigsIDs) == 0:
+                newID = max(self.usedClusterIDs)+1
+                self.usedClusterIDs.add(newID)
+                cell.dict['clusterID'] = newID
+                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                    if neighbor: 
+                        neighbor.dict['clusterID'] = newID
+            else:
+                id = min(neigsIDs)
+                cell.dict['clusterID'] = id
+                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                    if neighbor: 
+                        neighbor.dict['clusterID'] = id
+                
+        
+        #second loop for id fixing
+#         for 
+        
+        #updating extra fields
         self.updateFields(mcs)
             
     def finish(self):

@@ -1,7 +1,7 @@
 <ParameterScan version="3.7.0">
    <OutputDirectory>chimeraBoidsV2_ParameterScan</OutputDirectory>
    <ParameterList Resource="Simulation/chimeraBoidsV2.xml">
-      <Parameter CurrentIteration="1" Name="Energy" Type="XML_CDATA" ValueType="float">
+      <Parameter CurrentIteration="4" Name="Energy" Type="XML_CDATA" ValueType="float">
          [['CompuCell3D','Revision','20180722','Version','3.7.8'],['Plugin','Name','Contact'],['Energy','Type1','boidsA','Type2','boidsA']]
          <Values>5.0,10.0,20.0,30.0,40.0,50.0,75.0,100.0</Values>
       </Parameter>
