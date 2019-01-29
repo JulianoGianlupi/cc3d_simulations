@@ -158,6 +158,48 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         force = self.alphaBoids*cV + self.betaBoids*nV - self.deltaBoids*pF
         return force
     
+    
+    
+    
+    def assignClusterIDs(self,curr_Cell):
+        if len(self.getCellNeighborDataList(curr_Cell)) == 0:
+            curr_Cell.dict['clusterID'] = None
+            return
+        
+        neigsIDs = []
+        if curr_Cell.dict['clusterID'] != None:
+            neigsIDs.append(curr_Cell.dict['clusterID'])
+        
+        for neighbor, commonSurfaceArea in self.getCellNeighborDataList(curr_Cell):
+            if neighbor: 
+                if neighbor.dict['clusterID'] != None:
+                    neigsIDs.append(neighbor.dict['clusterID'])
+        
+        if len(neigsIDs) == 0:
+            newID = max(self.usedClusterIDs)+1
+            self.usedClusterIDs.add(newID)
+            curr_Cell.dict['clusterID'] = newID
+            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(curr_Cell):
+                if neighbor: 
+                    neighbor.dict['clusterID'] = newID
+        else:
+            id = min(neigsIDs)
+            curr_Cell.dict['clusterID'] = id
+            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(curr_Cell):
+                if neighbor: 
+                    neighbor.dict['clusterID'] = id
+        
+        if len(neigsIDs) > 1 and sorted(neigsIDs) not in self.equivalentIDs:
+            self.equivalentIDs.append(sorted(neigsIDs))
+    
+    
+    def reassingDoubleIDs(self,curr_Cell):
+        for e in self.equivalentIDs:
+                for notSmalestID in e[1:]:
+                    if curr_Cell.dict['clusterID'] == notSmalestID:
+                        curr_Cell.dict['clusterID'] = e[0]
+                        return
+    
     def updateFields(self,mcs):
         
         for cCell in self.cellList:
@@ -230,47 +272,15 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         ## there's also the issue of tracking the used IDs.
         #self.usedClusterIDs
         
-        equivalentIDs = []
+        self.equivalentIDs = []
         #first loop for id assignment
         for cell in self.cellList:
-            if len(self.getCellNeighborDataList(cell)) == 0:
-                cell.dict['clusterID'] = None
-                break
-            
-            neigsIDs = []
-            if cell.dict['clusterID'] != None:
-                neigsIDs.append(cell.dict['clusterID'])
-            
-            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                if neighbor: 
-                    if neighbor.dict['clusterID'] != None:
-                        neigsIDs.append(neighbor.dict['clusterID'])
-            
-            if len(neigsIDs) == 0:
-                newID = max(self.usedClusterIDs)+1
-                self.usedClusterIDs.add(newID)
-                cell.dict['clusterID'] = newID
-                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor: 
-                        neighbor.dict['clusterID'] = newID
-            else:
-                id = min(neigsIDs)
-                cell.dict['clusterID'] = id
-                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor: 
-                        neighbor.dict['clusterID'] = id
-            
-            if len(neigsIDs) > 1 and sorted(neigsIDs) not in equivalentIDs:
-                equivalentIDs.append(sorted(neigsIDs))
+            self.assignClusterIDs(cell)
         
         #second loop for id fixing
         inUseClusterIDs = []##will use this to assign colors
         for cell in self.cellList:
-            for e in equivalentIDs:
-                for notSmalestID in e[1:]:
-                    if cell.dict['clusterID'] == notSmalestID:
-                        cell.dict['clusterID'] = e[0]
-                        #return
+            self.reassingDoubleIDs(cell)
             inUseClusterIDs.append(cell.dict['clusterID'])
         
         inUseClusterIDs = set(inUseClusterIDs)
