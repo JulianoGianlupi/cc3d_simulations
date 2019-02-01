@@ -1,3 +1,5 @@
+from PlayerPython import * 
+import CompuCellSetup
 
 from PySteppables import *
 import CompuCell
@@ -46,6 +48,10 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
         self.vectorForceField = self.createVectorFieldCellLevelPy("Force")
         
+        self.scalarClusterIDfield = self.createScalarFieldCellLevelPy("Cluster_ID")
+        
+        
+        
         
     def start(self):
         # any code in the start function runs before MCS=0
@@ -73,6 +79,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 
                 
                 cell.dict['forceAngle'] = np.random.uniform(-np.pi,np.pi)
+#                 print cell.dict['forceAngle']
                 cell.dict['angle']=cell.dict['forceAngle']
                 
                 cell.dict['centerMassX'] = cell.xCOM
@@ -96,6 +103,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 
                 #cluster ID
                 cell.dict['clusterID'] = None
+                cell.dict['color'] = None
     
 
     def positionTracking(self,mcs,cur_Cell):
@@ -162,8 +170,11 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
     
     
     def assignClusterIDs(self,curr_Cell):
-        if len(self.getCellNeighborDataList(curr_Cell)) == 0:
+        #print len(self.getCellNeighborDataList(curr_Cell))
+        if len(self.getCellNeighborDataList(curr_Cell)) <= 1: #medium is counted!!! 
+
             curr_Cell.dict['clusterID'] = None
+
             return
         
         neigsIDs = []
@@ -177,6 +188,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
         if len(neigsIDs) == 0:
             newID = max(self.usedClusterIDs)+1
+            print 'new ID:', newID
             self.usedClusterIDs.add(newID)
             curr_Cell.dict['clusterID'] = newID
             for neighbor, commonSurfaceArea in self.getCellNeighborDataList(curr_Cell):
@@ -189,27 +201,55 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 if neighbor: 
                     neighbor.dict['clusterID'] = id
         
-        if len(neigsIDs) > 1 and sorted(neigsIDs) not in self.equivalentIDs:
+        if len(set(neigsIDs)) > 1 and sorted(neigsIDs) not in self.equivalentIDs:
             self.equivalentIDs.append(sorted(neigsIDs))
     
     
     def reassingDoubleIDs(self,curr_Cell):
+        if curr_Cell.dict['clusterID'] == None:
+            return
         for e in self.equivalentIDs:
                 for notSmalestID in e[1:]:
                     if curr_Cell.dict['clusterID'] == notSmalestID:
                         curr_Cell.dict['clusterID'] = e[0]
+                        print 'reasigned', notSmalestID, 'to', e[0]
                         return
+    
+    def coloringByID(self,inUseClusterIDs):
+        
+        color = 0
+        if len(inUseClusterIDs)>0:
+            maxID = max(inUseClusterIDs)
+            inUseClusterIDs = sorted(list(set(inUseClusterIDs)))
+            interval = float(maxID)/len(inUseClusterIDs)
+            print maxID, len(inUseClusterIDs), interval
+            for cell in self.cellList:
+#                 print color
+                for i, id in enumerate(inUseClusterIDs):
+                    if cell.dict['clusterID'] == id:
+                        color = .5*((i+1)*interval)+.5*maxID
+                        cell.dict['color'] = color
+                        break
     
     def updateFields(self,mcs):
         
+        ##for better colors in the cluster IDs I'll set them to be a % of the max ID
+        ##(previouslly the ID itself was used as color
         for cCell in self.cellList:
+            
+            #updating scalar field for cluster coloring.
+            if cCell.dict['color'] != None:
+                self.scalarClusterIDfield[cCell] = cCell.dict['color']
+            else:
+                self.scalarClusterIDfield[cCell] = 0
+            
             #updating scalar field for intantaneous angle of movement:
             self.scalarAngleField[cCell] = 180*(cCell.dict['angle']+np.pi)/np.pi
             #updating vector field for intantaneous velocity:
-            self.vectorIVelocityField[cCell] = [cCell.dict['velocityX_instant'], cCell.dict['velocityX_instant'], 0]
+            self.vectorIVelocityField[cCell] = [cCell.dict['velocityX_instant'], cCell.dict['velocityY_instant'], 0]
             
             if mcs>self.deltaTime:
-                self.vectorTVelocityField[cCell] = [cCell.dict['velocityX_deltaT'], cCell.dict['velocityX_deltaT'], 0]
+                self.vectorTVelocityField[cCell] = [cCell.dict['velocityX_deltaT'], cCell.dict['velocityY_deltaT'], 0]
                 self.vectorForceField[cCell] = [cCell.dict['previousForceX'], cCell.dict['previousForceY'], 0]
         
 #         self.vectorTVelocityField = self.createVectorFieldCellLevelPy('dt_Velocity')
@@ -220,26 +260,51 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         #type here the code that will run every _frequency MCS
         
         #############################################################
-        #first cell loop to update tracking of position and velocities
+        #first cell loop to update tracking of position, velocities, id assignment
+        
+        self.equivalentIDs = []
+        #first loop for id assignment
+
         for cell in self.cellList:
-            if cell:
-                self.positionTracking(mcs,cell)
+            cell.dict['color'] = None
+            self.assignClusterIDs(cell)
+            self.positionTracking(mcs,cell)
+            
+            
+            
+            if mcs > self.deltaTime:
+                vx = ( cell.dict['positionX'][-1] - cell.dict['positionX'][-self.deltaTime-1] )
+                vx = vx/self.deltaTime
                 
+                vy = ( cell.dict['positionY'][-1] - cell.dict['positionY'][-self.deltaTime-1] )
+                vy = vy/self.deltaTime
                 
-                
-                if mcs > self.deltaTime:
-                    vx = ( cell.dict['positionX'][-1] - cell.dict['positionX'][-self.deltaTime-1] )
-                    vx = vx/self.deltaTime
-                    
-                    vy = ( cell.dict['positionY'][-1] - cell.dict['positionY'][-self.deltaTime-1] )
-                    vy = vy/self.deltaTime
-                    
-                    cell.dict['velocityX_deltaT'] = vx
-                    cell.dict['velocityY_deltaT'] = vy
+                cell.dict['velocityX_deltaT'] = vx
+                cell.dict['velocityY_deltaT'] = vy
         ##############################################################
         
+        #####################################################
+        
+        ##I need to identify the clusters. The most straitforward way I can think is
+        ## simply looping the cells, checking the neighbors and assingning a colective ID. If the
+        ## neighbor already has an ID use that one instead. This is what's done in the 1st loop.
+        ## Of course, this may lead to a single
+        ## cluster having multiple IDs, so a second pass will be necessary. 
+        ## there's also the issue of tracking the used IDs (witch will only really be an issue if 
+        ## the number of used IDs gets to be close to 2**32, I guess).
+        ########
+        ## All of the above I believe is solved. However there's the issue of a cluster breaking in
+        ## two clusters, detecting that and spliting the ID.
+        
+        
+        for cell in self.cellList:
+            self.reassingDoubleIDs(cell)
+        
+        
+        
+        
         #################################################
-        #second cell loop to calculate the boid's force 
+        # cell loop to calculate the boid's force 
         if mcs > self.deltaTime:
             for cell in self.cellList:
                 
@@ -263,31 +328,20 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                
                 cell.dict['previousForceX'] = forceX
                 cell.dict['previousForceY'] = forceY 
-        #####################################################
         
-        ##I need to identify the clusters. The most straitforward way I can think is
-        ## simply looping the cells, checking the neighbors and assingning a colective ID. If the
-        ## neighbor already has an ID use that one instead. Of course, this may lead to a single
-        ## cluster having multiple IDs, so a second pass will be necessary. 
-        ## there's also the issue of tracking the used IDs.
-        #self.usedClusterIDs
         
-        self.equivalentIDs = []
-        #first loop for id assignment
-        for cell in self.cellList:
-            self.assignClusterIDs(cell)
         
-        #second loop for id fixing
+        # loop for id fixing
         inUseClusterIDs = []##will use this to assign colors
         for cell in self.cellList:
-            self.reassingDoubleIDs(cell)
-            inUseClusterIDs.append(cell.dict['clusterID'])
+            if cell.dict['clusterID'] != None:
+                inUseClusterIDs.append(cell.dict['clusterID'])
         
-        inUseClusterIDs = set(inUseClusterIDs)
+        self.coloringByID(inUseClusterIDs)
         
         #updating extra fields
         self.updateFields(mcs)
-            
+        
     def finish(self):
         # Finish Function gets called after the last MCS
         pass

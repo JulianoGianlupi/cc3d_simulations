@@ -41,19 +41,30 @@
       <!-- Specification of adhesion energies -->
       <Energy Type1="Medium" Type2="Medium">10.0</Energy>
       <Energy Type1="Medium" Type2="boidsA">10.0</Energy>
-      <Energy Type1="boidsA" Type2="boidsA">20.0</Energy>
+      <Energy Type1="boidsA" Type2="boidsA">40.0</Energy>
       <NeighborOrder>3</NeighborOrder>
    </Plugin>
    
-   <Steppable Type="BlobInitializer">
-      
-      <!-- Initial layout of cells in the form of spherical (circular in 2D) blob -->
-      <Region>
-         <Center x="127" y="127" z="0"/>
-         <Radius>100</Radius>
-         <Gap>5</Gap>
-         <Width>8</Width>
-         <Types>boidsA</Types>
-      </Region>
-   </Steppable>
+   <Steppable Type="UniformInitializer">
+   
+   <!-- Initial layout of cells in the form of rectangular slab -->
+   <Region>
+      <BoxMin x="100" y="50" z="0"/>
+      <BoxMax x="150" y="203" z="1"/>
+      <Gap>0</Gap>
+      <Width>5</Width>
+      <Types>boidsA</Types>
+   </Region>
+</Steppable>
+
+   
+<!--    <Steppable Type="BlobInitializer"> -->
+<!--       <Region> -->
+<!--          <Center x="127" y="127" z="0"/> -->
+<!--          <Radius>100</Radius> -->
+<!--          <Gap>0</Gap> -->
+<!--          <Width>8</Width> -->
+<!--          <Types>boidsA</Types> -->
+<!--       </Region> -->
+<!--    </Steppable> -->
 </CompuCell3D>
