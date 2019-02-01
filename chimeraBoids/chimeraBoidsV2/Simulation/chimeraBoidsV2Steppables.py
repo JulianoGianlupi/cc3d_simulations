@@ -71,6 +71,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         #set of used cluster IDs
         self.usedClusterIDs = set([0])#I think that to avoid possible errors it's best if the set is not
 #                                   #empty
+        self.currentIDs = set([0])
         #assigning parameters
         for cell in self.cellList:
             if cell:
@@ -188,6 +189,9 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
         if len(neigsIDs) == 0:
             newID = max(self.usedClusterIDs)+1
+            #self.currentIDs
+            
+            
             print 'new ID:', newID
             self.usedClusterIDs.add(newID)
             curr_Cell.dict['clusterID'] = newID
@@ -338,7 +342,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 inUseClusterIDs.append(cell.dict['clusterID'])
         
         self.coloringByID(inUseClusterIDs)
-        
+        self.currentIDs = set(inUseClusterIDs)
         #updating extra fields
         self.updateFields(mcs)
         
