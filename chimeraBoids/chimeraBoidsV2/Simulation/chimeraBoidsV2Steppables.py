@@ -105,6 +105,12 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 #cluster ID
                 cell.dict['clusterID'] = None
                 cell.dict['color'] = None
+                
+                #neighbor tracking:
+                cell.dict['previous_neighbors'] = []
+                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cur_Cell):
+                    if neighbor:
+                        cell.dict['neighbors'].append(neighbor.id)
     
 
     def positionTracking(self,mcs,cur_Cell):
@@ -299,13 +305,79 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         ########
         ## All of the above I believe is solved. However there's the issue of a cluster breaking in
         ## two clusters, detecting that and spliting the ID.
+        ## 
+        ## I could keep track of the neighbors of every cell. Then, if the neighborhood
+        ## has changed check if the cell that left still has some neighbors. If this is so
+        ## then I can just assign a new ID to those that left. I'll do this check after the reasignment.
+        ## I'll have to delete the list of equivalencies before entering this function.
+        ## I also need a dictionary for the neighbors, probably the neighbors IDs. 
+        ## Also, I only care if the neigborhood has diminished.
+        ##
+        ## The implementation of this is below. After the reassingDoubleIDs, before the next
+        ## line of "#". It still needs testing. I should probably also rewrite reassingDoubleIDs
+        ## so that it can take the list of equivalents, this way I can call it one time with the general
+        ## one and a second time with the new equivalencies (after the split).
         
         
         for cell in self.cellList:
             self.reassingDoubleIDs(cell)
         
+        #find breakAways
+        breakAways = []
         
+        for cell in self.cellList:
+            foundBreakAways = []
+            if len(cell.dict['previous_neighbors']) == 0:
+                break
+            currentNeigs = []
+            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                if neighbor:  
+                    currentNeigs.append(neighbor.id)
+            
+            if len(currentNeigs) == 0:
+                break
+            elif len(cell.dict['previous_neighbors']) > len(currentNeigs):
+                breakAway = set(cell.dict['previous_neighbors']) - set(currentNeigs)
+                for b in breakAway:
+                    if b not in foundBreakAways:
+                        foundBreakAways.append(breakAway)
         
+            breakAways.extend(foundBreakAways)
+        
+        #reasign breakAways
+        breakAways = list(set(breakAways))
+        self.divisionID = [max(self.usedClusterIDs)]#[max(self.usedClusterIDs)+1]
+        self.divisionEquivalentIDs = []
+        for cell in self.cellList:
+            if len(self.getCellNeighborDataList(curr_Cell)) <= 1:
+                break
+            if cell.id in breakAways:
+                neigsNewIDs = []
+                if cell.dict['clusterID'] in divisionID:
+                    neigsNewIDs.append(cell.dict['clusterID'])
+                
+                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                    if neighbor:
+                        if neighbor.dict['clusterID'] in divisionID:
+                            neigsNewIDs.append(neighbor.dict['clusterID'])
+            else:
+                break
+            
+            if len(neigsNewIDs) == 0:
+                newID = max(self.divisionID)+1
+                self.divisionID.add(newID)
+                cell.dict['clusterID'] = newID
+                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                    if neighbor:
+                        neighbor.dict['clusterID'] = newID
+            else:
+                id = min(neigsNewIDs)
+                cell.dict['clusterID'] = id
+                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                    if neighbor:
+                        neighbor.dict['clusterID'] = id
+            if len(set(neigsNewIDs)) > 1 and sorted(neigsNewIDs) not in self.divisionEquivalentIDs:
+                self.divisionEquivalentIDs.append(neigsNewIDs)
         
         #################################################
         # cell loop to calculate the boid's force 
@@ -332,10 +404,11 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                
                 cell.dict['previousForceX'] = forceX
                 cell.dict['previousForceY'] = forceY 
+#        
+        
+       
         
         
-        
-        # loop for id fixing
         inUseClusterIDs = []##will use this to assign colors
         for cell in self.cellList:
             if cell.dict['clusterID'] != None:
