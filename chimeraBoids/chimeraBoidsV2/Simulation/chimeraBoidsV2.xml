@@ -3,7 +3,7 @@
    <Potts>
       
       <!-- Basic properties of CPM (GGH) algorithm -->
-      <Dimensions x="255" y="255" z="1"/>
+      <Dimensions x="256" y="256" z="1"/>
       <Steps>1000000</Steps>
       <Temperature>10.0</Temperature>
       <NeighborOrder>2</NeighborOrder>
@@ -44,17 +44,24 @@
       <!-- Specification of adhesion energies -->
       <Energy Type1="Medium" Type2="Medium">10.0</Energy>
       <Energy Type1="Medium" Type2="boidsA">10.0</Energy>
-      <Energy Type1="boidsA" Type2="boidsA">15.0</Energy>
+      <Energy Type1="boidsA" Type2="boidsA">20.0</Energy>
       <NeighborOrder>3</NeighborOrder>
    </Plugin>
    
-   <Steppable Type="UniformInitializer">
-   
-   <!-- Initial layout of cells in the form of rectangular slab -->
+<!-- <Steppable Type="UniformInitializer"> -->
+<!--    <Region> -->
+<!--       <BoxMin x="5" y="5" z="0"/> -->
+<!--       <BoxMax x="250" y="250" z="1"/> -->
+<!--       <Gap>15</Gap> -->
+<!--       <Width>5</Width> -->
+<!--       <Types>boidsA</Types> -->
+<!--    </Region> -->
+<!-- </Steppable> -->
+<Steppable Type="UniformInitializer">
    <Region>
-      <BoxMin x="5" y="5" z="0"/>
-      <BoxMax x="250" y="250" z="1"/>
-      <Gap>15</Gap>
+      <BoxMin x="112" y="51" z="0"/>
+      <BoxMax x="144" y="204" z="1"/>
+      <Gap>0</Gap>
       <Width>5</Width>
       <Types>boidsA</Types>
    </Region>
