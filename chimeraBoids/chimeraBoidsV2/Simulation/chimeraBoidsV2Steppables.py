@@ -99,21 +99,21 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
                 cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle']) 
                 
-                
-                
-                cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-                cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
+                if cell.yCOM > .5*self.dim.y:
+                    cell.lambdaVecX = self.forceModulus*np.cos(.5*np.pi) 
+                    cell.lambdaVecY = self.forceModulus*np.sin(.5*np.pi) 
+                else:
+                    cell.lambdaVecX = self.forceModulus*np.cos(-.5*np.pi) 
+                    cell.lambdaVecY = self.forceModulus*np.sin(-.5*np.pi)
+                #cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                #cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
                 
                 #cluster ID
                 cell.dict['clusterID'] = None
+                cell.dict['previous_clusterID'] = None
                 cell.dict['color'] = None
                 
-                #neighbor tracking:
-                cell.dict['true_breakAway'] = False
-                cell.dict['previous_neighbors'] = []
-                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor:
-                        cell.dict['previous_neighbors'].append(neighbor.id)
+                
     
 
     def positionTracking(self,mcs,cur_Cell):
@@ -225,7 +225,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 for notSmalestID in e[1:]:
                     if curr_Cell.dict['clusterID'] == notSmalestID:
                         curr_Cell.dict['clusterID'] = e[0]
-                        print 'reasigned', notSmalestID, 'to', e[0]
+                        #print 'reasigned', notSmalestID, 'to', e[0]
                         return
     
     def coloringByID(self,inUseClusterIDs):
@@ -306,7 +306,55 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         ## there's also the issue of tracking the used IDs (witch will only really be an issue if 
         ## the number of used IDs gets to be close to 2**32, I guess).
         ########
-        ## All of the above I believe is solved. However there's the issue of a cluster breaking in
+        
+        
+        
+        
+        for cell in self.cellList:
+            self.reassingDoubleIDs(cell,self.equivalentIDs)
+        
+        
+        #################################################
+        
+        
+        # cell loop to calculate the boid's force 
+        if mcs > self.deltaTime:
+            for cell in self.cellList:
+                
+                cellVx = cell.dict['velocityX_deltaT']
+                cellVy = cell.dict['velocityY_deltaT']
+                
+                #getting mean velocities of neighbours
+                neigVx, neigVy = self.getNeighboursMeanVelocity(cell)
+                
+                #calculating new force in x and y
+                forceX = self.calculateForce(cellVx,neigVx,cell.dict['previousForceX'])
+                forceY = self.calculateForce(cellVy,neigVy,cell.dict['previousForceY'])
+                
+                #getting the angle of new force
+                # # not sure about the implementation of noise
+                cell.dict['forceAngle'] = np.arctan2(forceY,forceX) + self.gammaBoids * np.random.uniform(-np.pi,np.pi)
+                
+                #aplying standard force with new angle
+                #cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                #cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])  
+                
+                cell.dict['previousForceX'] = forceX
+                cell.dict['previousForceY'] = forceY 
+#        
+        
+        inUseClusterIDs = []##will use this to assign colors
+        for cell in self.cellList:
+            if cell.dict['clusterID'] != None:
+                inUseClusterIDs.append(cell.dict['clusterID'])
+        
+        self.coloringByID(inUseClusterIDs)
+        self.currentIDs = set(inUseClusterIDs)
+        #updating extra fields
+        self.updateFields(mcs)
+        
+        
+        ## there's the issue of a cluster breaking in
         ## two clusters, detecting that and spliting the ID.
         ## 
         ## I could keep track of the neighbors of every cell. Then, if the neighborhood
@@ -323,213 +371,64 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         ## and then have some kind of method for the separation. something like, if 2 cells have the same old ID 
         ## only one of them gets to keep it.
         
-        
-        
-        for cell in self.cellList:
-            self.reassingDoubleIDs(cell,self.equivalentIDs)
-        
-        '''
-        completeBreakAways = set([])
-        #trueBreakAways = set([])
-        for cell in self.cellList:
-            if (len(cell.dict['previous_neighbors']) == 0 or #if the cell didn't have neighs dont bother
-                len(self.getCellNeighborDataList(cell)) <= 1):# or #if the cell is alone now don't bother
-                #len(cell.dict['previous_neighbors']) <= len(currentNeigs)):# or#if the n of neigs increased dont bother
-                #cell.id in completeBreakAways):
-                
-                cell.dict['true_breakAway'] = False
-                break
-            
-            #comparing the neig before and now
-            currentNeigs = []
-            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                if neighbor:  
-                    currentNeigs.append(neighbor.id)
-            if len(cell.dict['previous_neighbors']) <= len(currentNeigs):
-                break
-            #getting the cells that broke away
-            # setA - setB = set of elements in A that are not in B
-            breakAways = list(set(cell.dict['previous_neighbors']) - set(currentNeigs))
-            for bA in self.cellList:                
-                if bA.id in breakAways: #this cell is a break away
-                    stillConnected = False
-                    for neighbor, commonSurfaceArea in self.getCellNeighborDataList(bA):
-                        if neighbor:   
-                            if neighbor.id in currentNeigs: #there's still a connection
-                                stillConnected = True
-                                cell.dict['true_breakAway'] = False
-                else:
-                    break
-                if stillConnected == False:#if there's no direct conection
-                    cell.dict['true_breakAway'] = True
-                    #trueBreakAways.add(bA.id)
-            completeBreakAways.update(breakAways)
-        
-        self.divisionID = set([max(self.usedClusterIDs)])
-        self.divisionEquivalentIDs = []
-        for cell in self.cellList:
-            if cell.dict['true_breakAway'] == False:
-                break
-            else:
-                neigsNewIDs = []
-                if cell.dict['clusterID'] in self.divisionID:
-                    neigsNewIDs.append(cell.dict['clusterID'])
-                
-                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor:
-                        if neighbor.dict['clusterID'] in self.divisionID:
-                            neigsNewIDs.append(neighbor.dict['clusterID'])
-                
-                #if no neigh has a new id
-                if len(neigsNewIDs) == 0:
-                    #create a new id and use that
-                    newID = max(self.divisionID)+1
-                    self.divisionID.add(newID)
-                    cell.dict['clusterID'] = newID
-                    for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                        if neighbor:
-                            neighbor.dict['clusterID'] = newID
-                else:
-                    #use the tiniest of the neig ids
-                    id = min(neigsNewIDs)
-                    cell.dict['clusterID'] = id
-                    for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                        if neighbor:
-                            neighbor.dict['clusterID'] = id
-                #update the equivalencies
-                if len(set(neigsNewIDs)) > 1 and sorted(neigsNewIDs) not in self.divisionEquivalentIDs:
-                    self.divisionEquivalentIDs.append(neigsNewIDs)
-        
-        #reasign duplicates
-        for cell in self.cellList:
-            self.reassingDoubleIDs(cell,self.divisionEquivalentIDs)
-            cell.dict['previous_neighbors']=[]
-            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor:
-                        cell.dict['previous_neighbors'].append(neighbor.id)
-        
-        
-        
-        
-        self.usedClusterIDs.update(self.divisionID)    
-        '''
-        
-        '''
-        #find breakAways
-        breakAways = []
+        self.equivalencyToOld  = set([])
         
         for cell in self.cellList:
-            foundBreakAways = []
-            if len(cell.dict['previous_neighbors']) == 0:
-                break
-            if len(self.getCellNeighborDataList(cell)) <= 1:
-                break            
-            if len(cell.dict['previous_neighbors']) < len(currentNeigs):
-                break
-            
-            currentNeigs = []
-            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                if neighbor:  
-                    currentNeigs.append(neighbor.id)
-            
-            
-            # setA - setB = set of elements in A that are not in B
-            breakAway = list(set(cell.dict['previous_neighbors']) - set(currentNeigs))
-            for b in breakAway:
-                if b not in foundBreakAways:
-                    foundBreakAways.append(b)
+            if (cell.dict['previous_clusterID'] != None and 
+                cell.dict['clusterID'] != None):
+                #
+                self.equivalencyToOld.add((cell.dict['previous_clusterID'],cell.dict['clusterID']))
+        toDiscard = set([])
+        for pairA in self.equivalencyToOld:
+            for pairB in self.equivalencyToOld:
+                if (pairA[0] == pairB[0] and
+                    pairA[1] != pairB[1]):
+                    #
+                    toDiscard.add(pairB)
         
-            breakAways.extend(foundBreakAways)
-        breakAways = list(set(breakAways))
+        for d in toDiscard:
+            self.equivalencyToOld.discard(d)
         
+        #get the old ids that will be used again
+        oldInUse = [ids[0] for ids in self.equivalencyToOld]
         
-        #reasign breakAways
-        
-        self.divisionID = set([max(self.usedClusterIDs)])
-        self.divisionEquivalentIDs = []
-        for cell in self.cellList:
-            if len(self.getCellNeighborDataList(cell)) <= 1:
-                break
-            if cell.id in breakAways:
-                neigsNewIDs = []
-                if cell.dict['clusterID'] in self.divisionID:
-                    neigsNewIDs.append(cell.dict['clusterID'])
-                
-                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor:
-                        if neighbor.dict['clusterID'] in self.divisionID:
-                            neigsNewIDs.append(neighbor.dict['clusterID'])
-            else:
-                break
-            
-            if len(neigsNewIDs) == 0:
-                newID = max(self.divisionID)+1
-                self.divisionID.add(newID)
-                cell.dict['clusterID'] = newID
-                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor:
-                        neighbor.dict['clusterID'] = newID
-            else:
-                id = min(neigsNewIDs)
-                cell.dict['clusterID'] = id
-                for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor:
-                        neighbor.dict['clusterID'] = id
-            if len(set(neigsNewIDs)) > 1 and sorted(neigsNewIDs) not in self.divisionEquivalentIDs:
-                self.divisionEquivalentIDs.append(neigsNewIDs)
-        
+        #set of current ids that will conflict with old ids
+        #ie, after reassigning cells that will conflict with that reasignment,
+        #having a new id that has the same value that an in use old id.
+        repeatedNew = set([])
+        for d in toDiscard:
+            if d[1] in oldInUse:
+                #if there's a conflict generate a new id for the conflicting cell
+                newID = max(self.usedClusterIDs)+1
+                repeatedNew.add((newID,d[1]))
         
         for cell in self.cellList:
-            self.reassingDoubleIDs(cell,self.divisionEquivalentIDs)
-            cell.dict['previous_neighbors']=[]
-            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
-                    if neighbor:
-                        cell.dict['previous_neighbors'].append(neighbor.id)
+            #solve conflict
+            self.reassingDoubleIDs(cell,repeatedNew)
         
-        
-        self.usedClusterIDs.update(self.divisionID)
-        '''
-        #################################################
-        
-        
-        # cell loop to calculate the boid's force 
-        if mcs > self.deltaTime:
-            for cell in self.cellList:
-                
-                cellVx = cell.dict['velocityX_deltaT']
-                cellVy = cell.dict['velocityY_deltaT']
-                
-                #getting mean velocities of neighbours
-                neigVx, neigVy = self.getNeighboursMeanVelocity(cell)
-                
-                #calculating new force in x and y
-                forceX = self.calculateForce(cellVx,neigVx,cell.dict['previousForceX'])                
-                forceY = self.calculateForce(cellVy,neigVy,cell.dict['previousForceY'])                
-                
-                #getting the angle of new force
-                # # not sure about the implementation of noise
-                cell.dict['forceAngle'] = np.arctan2(forceY,forceX) + self.gammaBoids * np.random.uniform(-np.pi,np.pi)
-                
-                #aplying standard force with new angle
-                cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-                cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])  
-               
-                cell.dict['previousForceX'] = forceX
-                cell.dict['previousForceY'] = forceY 
-#        
-        
-       
-        
-        
-        inUseClusterIDs = []##will use this to assign colors
         for cell in self.cellList:
-            if cell.dict['clusterID'] != None:
-                inUseClusterIDs.append(cell.dict['clusterID'])
+            self.reassingDoubleIDs(cell,self.equivalencyToOld)
         
-        self.coloringByID(inUseClusterIDs)
-        self.currentIDs = set(inUseClusterIDs)
-        #updating extra fields
-        self.updateFields(mcs)
+        
+        
+        
+        #cleanup
+        print '!!!!!!!!!!!!'
+        print self.currentIDs
+        print '!!!!!!!!!!!!'
+        self.oldIDs = self.currentIDs.copy()
+        self.usedClusterIDs = None
+        self.usedClusterIDs = set([0])
+        self.currentIDs = None
+        self.currentIDs = set([0])
+        for cell in self.cellList:
+            cell.dict['previous_clusterID'] = cell.dict['clusterID']
+            cell.dict['clusterID'] = None
+        
+        
+        
+        
+        
         
     def finish(self):
         # Finish Function gets called after the last MCS
