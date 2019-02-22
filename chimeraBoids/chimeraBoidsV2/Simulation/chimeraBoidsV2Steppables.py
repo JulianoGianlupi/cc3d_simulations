@@ -98,16 +98,11 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 
                 cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
                 cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle']) 
-                if cell.yCOM > .5*self.dim.y:
-                    cell.lambdaVecX = self.forceModulus*np.cos(.5*np.pi)
-                    cell.lambdaVecY = self.forceModulus*np.sin(.5*np.pi) 
-                else:
-                    cell.lambdaVecX = self.forceModulus*np.cos(-.5*np.pi)
-                    cell.lambdaVecY = self.forceModulus*np.sin(-.5*np.pi) 
                 
                 
-                #cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-                #cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
+                
+                cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
                 
                 #cluster ID
                 cell.dict['clusterID'] = None
@@ -321,13 +316,19 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         ## I also need a dictionary for the neighbors, probably the neighbors IDs. 
         ## Also, I only care if the neigborhood has diminished.
         ##
+        ## well, that didn't work
+        ##
+        ## Maybe I could reset the whole cluster ID thing every MCS. To keep history I could have the old 
+        ## ID in a dict. Then assing that one over the new one. But before that do the whole reassingDoubleIDs
+        ## and then have some kind of method for the separation. something like, if 2 cells have the same old ID 
+        ## only one of them gets to keep it.
         
         
         
         for cell in self.cellList:
             self.reassingDoubleIDs(cell,self.equivalentIDs)
         
-        
+        '''
         completeBreakAways = set([])
         #trueBreakAways = set([])
         for cell in self.cellList:
@@ -408,8 +409,10 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                         cell.dict['previous_neighbors'].append(neighbor.id)
         
         
-        self.usedClusterIDs.update(self.divisionID)    
         
+        
+        self.usedClusterIDs.update(self.divisionID)    
+        '''
         
         '''
         #find breakAways
@@ -487,6 +490,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.usedClusterIDs.update(self.divisionID)
         '''
         #################################################
+        
+        
         # cell loop to calculate the boid's force 
         if mcs > self.deltaTime:
             for cell in self.cellList:
@@ -506,8 +511,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 cell.dict['forceAngle'] = np.arctan2(forceY,forceX) + self.gammaBoids * np.random.uniform(-np.pi,np.pi)
                 
                 #aplying standard force with new angle
-                #cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-                #cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])  
+                cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])  
                
                 cell.dict['previousForceX'] = forceX
                 cell.dict['previousForceY'] = forceY 

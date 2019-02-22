@@ -4,7 +4,7 @@
       
       <!-- Basic properties of CPM (GGH) algorithm -->
       <Dimensions x="256" y="256" z="1"/>
-      <Steps>1000000</Steps>
+      <Steps>100000</Steps>
       <Temperature>10.0</Temperature>
       <NeighborOrder>2</NeighborOrder>
       <Boundary_x>Periodic</Boundary_x>
@@ -57,24 +57,26 @@
 <!--       <Types>boidsA</Types> -->
 <!--    </Region> -->
 <!-- </Steppable> -->
-<Steppable Type="UniformInitializer">
-   <Region>
-      <BoxMin x="112" y="51" z="0"/>
-      <BoxMax x="144" y="204" z="1"/>
-      <Gap>0</Gap>
-      <Width>5</Width>
-      <Types>boidsA</Types>
-   </Region>
-</Steppable>
+
+
+<!-- <Steppable Type="UniformInitializer"> -->
+<!--    <Region> -->
+<!--       <BoxMin x="112" y="51" z="0"/> -->
+<!--       <BoxMax x="144" y="204" z="1"/> -->
+<!--       <Gap>0</Gap> -->
+<!--       <Width>5</Width> -->
+<!--       <Types>boidsA</Types> -->
+<!--    </Region> -->
+<!-- </Steppable> -->
 
    
-<!--    <Steppable Type="BlobInitializer"> -->
-<!--       <Region> -->
-<!--          <Center x="127" y="127" z="0"/> -->
-<!--          <Radius>100</Radius> -->
-<!--          <Gap>0</Gap> -->
-<!--          <Width>8</Width> -->
-<!--          <Types>boidsA</Types> -->
-<!--       </Region> -->
-<!--    </Steppable> -->
+    <Steppable Type="BlobInitializer"> 
+       <Region> 
+          <Center x="127" y="127" z="0"/> 
+          <Radius>100</Radius> 
+          <Gap>5</Gap> 
+          <Width>8</Width> 
+          <Types>boidsA</Types> 
+       </Region> 
+    </Steppable>
 </CompuCell3D>
