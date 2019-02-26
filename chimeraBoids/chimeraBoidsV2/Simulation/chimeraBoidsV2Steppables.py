@@ -99,14 +99,20 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
                 cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle']) 
                 
-                if cell.yCOM > .5*self.dim.y:
-                    cell.lambdaVecX = self.forceModulus*np.cos(.5*np.pi) 
-                    cell.lambdaVecY = self.forceModulus*np.sin(.5*np.pi) 
-                else:
-                    cell.lambdaVecX = self.forceModulus*np.cos(-.5*np.pi) 
-                    cell.lambdaVecY = self.forceModulus*np.sin(-.5*np.pi)
-                #cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-                #cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
+                #if cell.yCOM > .5*self.dim.y:
+                #    cell.lambdaVecX = self.forceModulus*np.cos(.5*np.pi) 
+                #    cell.lambdaVecY = self.forceModulus*np.sin(.5*np.pi) 
+                #else:
+                #    cell.lambdaVecX = self.forceModulus*np.cos(-.5*np.pi) 
+                #    cell.lambdaVecY = self.forceModulus*np.sin(-.5*np.pi)
+                
+                
+                
+                
+                
+                
+                cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle']) 
                 
                 #cluster ID
                 cell.dict['clusterID'] = None
@@ -336,8 +342,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 cell.dict['forceAngle'] = np.arctan2(forceY,forceX) + self.gammaBoids * np.random.uniform(-np.pi,np.pi)
                 
                 #aplying standard force with new angle
-                #cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
-                #cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])  
+                cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+                cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])  
                 
                 cell.dict['previousForceX'] = forceX
                 cell.dict['previousForceY'] = forceY 
@@ -370,6 +376,9 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         ## ID in a dict. Then assing that one over the new one. But before that do the whole reassingDoubleIDs
         ## and then have some kind of method for the separation. something like, if 2 cells have the same old ID 
         ## only one of them gets to keep it.
+        ## 
+        ## right now it works, but it takes a couple of mcs to work. Well, latest test has it working imediatly.
+        ## so probably there was some glitch before. idk
         
         self.equivalencyToOld  = set([])
         
@@ -398,6 +407,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         repeatedNew = set([])
         for d in toDiscard:
             if d[1] in oldInUse:
+                
                 #if there's a conflict generate a new id for the conflicting cell
                 newID = max(self.usedClusterIDs)+1
                 repeatedNew.add((newID,d[1]))
