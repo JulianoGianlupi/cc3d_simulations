@@ -1,7 +1,7 @@
 <ParameterScan version="3.7.0">
    <OutputDirectory>parameterScan</OutputDirectory>
    <ParameterList Resource="Simulation/singleCellExternalForce.xml">
-      <Parameter CurrentIteration="1" Name="RandomSeed" Type="XML_CDATA" ValueType="int">
+      <Parameter CurrentIteration="0" Name="RandomSeed" Type="XML_CDATA" ValueType="int">
          [['CompuCell3D','Revision','20171208','Version','3.7.7'],['Potts'],['RandomSeed']]
          <Values>308202718,1001658835,1695114952,2388571069,3082027186</Values>
       </Parameter>
@@ -18,7 +18,7 @@
       <Parameter CurrentIteration="0" Name="G_forceAngle_G" Type="PYTHON_GLOBAL" ValueType="float">
          <Values>0.0,2.0,3.0,6.0</Values>
       </Parameter>
-      <Parameter CurrentIteration="4" Name="G_forceModulus_G" Type="PYTHON_GLOBAL" ValueType="int">
+      <Parameter CurrentIteration="0" Name="G_forceModulus_G" Type="PYTHON_GLOBAL" ValueType="int">
          <Values>1,5,10,20,30,40,50,75,100,500,1000,5000,10000,50000</Values>
       </Parameter>
       <Parameter CurrentIteration="0" Name="G_lambda_Volume_G" Type="PYTHON_GLOBAL" ValueType="int">

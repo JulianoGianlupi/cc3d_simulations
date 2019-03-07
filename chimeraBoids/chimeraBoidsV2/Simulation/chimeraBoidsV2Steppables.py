@@ -179,6 +179,11 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             instVelsY.append(cell.dict['velocityY_instant'])
             
             if mcs>self.deltaTime:
+                
+                #this may or may not be called elsewhere, so, to be safe, I'm putting it here
+                neigVx, neigVy = self.getNeighboursMeanVelocity(cell)
+                
+                
                 dtVelsX.append(cell.dict['velocityX_deltaT'])
                 dtVelsY.append(cell.dict['velocityY_deltaT'])
                 
@@ -197,6 +202,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
 #         self.dtVelFile = os.path.join(self.saveLoc,'meanDeltaTVelocity.dat')
 #         self.dtNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity.dat')
         if mcs>self.deltaTime:
+            
             with open(self.dtVelFile, 'a+') as tvf:
                 mtvx = np.mean(dtVelsX)
                 etvx = np.std(dtVelsX)
