@@ -128,8 +128,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 
                 
     def selectForce(self,cell):
-        self.completeForce(cell)
-        #self.simpleForce(cell)
+        #self.completeForce(cell)
+        self.simpleForce(cell)
         
     def createWritingLoc(self):
         #write location
@@ -300,8 +300,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
         cell.lambdaVecY = self.forceModulus*np.sin(cell.dict['forceAngle'])  
         
-        cell.dict['previousForceX'] = cell.lambdaVecX
-        cell.dict['previousForceY'] = cell.lambdaVecY
+        cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
+        cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle'])  
     
     def simpleForce(self,cCell): # d orientation /dt = -A orientation + (1-A) velocity
         #self.deltaTime
@@ -321,8 +321,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         cCell.lambdaVecY = self.forceModulus*cCell.dict['orientation'][1]  
         
         cCell.dict['forceAngle'] = np.arctan2(cCell.dict['orientation'][0],cCell.dict['orientation'][1])
-        cCell.dict['previousForceX'] = cCell.lambdaVecX
-        cCell.dict['previousForceY'] = cCell.lambdaVecY
+        cCell.dict['previousForceX'] = self.forceModulus*cCell.dict['orientation'][0]
+        cCell.dict['previousForceY'] = self.forceModulus*cCell.dict['orientation'][1]
     
     
     def assignClusterIDs(self,curr_Cell):
