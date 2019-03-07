@@ -26,7 +26,7 @@ G_lambdaVolume_G = 8.
 G_forceModulus_G = -20 #speeds are tipically 1/100 of force.
 G_deltaTime_G = 10
 
-G_alphaBoids_G = 5.5
+G_alphaBoids_G = .1#5.5
 G_betaBoids_G = 1.5
 G_gammaBoids_G = .1
 G_deltaBoids_G = .1
@@ -105,6 +105,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
                 cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle']) 
                 
+                cell.dict['orientation'] = np.zeros(2)
                 #if cell.yCOM > .5*self.dim.y:
                 #    cell.lambdaVecX = self.forceModulus*np.cos(.5*np.pi) 
                 #    cell.lambdaVecY = self.forceModulus*np.sin(.5*np.pi) 
@@ -256,7 +257,21 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         force = self.alphaBoids*cV + self.betaBoids*nV - self.deltaBoids*pF
         return force
     
-    
+    def simpleForce(self,cCell): # d orientation /dt = -A orientation + (1-A) velocity
+        #self.deltaTime
+        dt = 1 #this calculation will happen every mcs
+        v = np.array([cCell.dict['velocityX_deltaT'],cCell.dict['velocityY_deltaT']])
+        normV = np.linalg.norm(v)
+        v = v/normV
+        oneAlpha = 1- self.alphaBoids
+        variation = - self.alphaBoids * cCell.dict['orientation'] + oneAlpha*v
+        
+        #orientation is a vector
+        cCell.dict['orientation'] += dt*variation
+        normOrient = np.linalg.norm(cCell.dict['orientation'])
+        cCell.dict['orientation'] = cCell.dict['orientation']/normOrient
+        
+        return
     
     
     def assignClusterIDs(self,curr_Cell):
