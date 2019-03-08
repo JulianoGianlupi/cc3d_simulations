@@ -141,7 +141,10 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
         self.instVelFile = os.path.join(self.saveLoc,'meanInstantVelocity.dat')
         self.dtVelFile = os.path.join(self.saveLoc,'meanDeltaTVelocity.dat')
-        self.dtNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity.dat')
+        
+        self.dtMeanNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity.dat')
+        self.dtNeighsVelsFileX = os.path.join(self.saveLoc,'deltaTNeigsVelocityX.dat')
+        self.dtNeighsVelsFileY = os.path.join(self.saveLoc,'deltaTNeigsVelocityY.dat')
         
         #writing the parameters
         with open(os.path.join(self.saveLoc,'parameters.dat'),'w+') as paramFile:
@@ -158,9 +161,20 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             instVel.write('mcs,<Vx(instant)>,std,<Vy(instant)>,std\n')
         with open(self.dtVelFile,'w+') as dtVel:
             dtVel.write('mcs,<Vx(over dt)>,std,<Vy(over dt)>,std\n')
-        with open(self.dtNeighsVelsFile,'w+') as dtNeighs:
-            dtNeighs.write('mcs,<<Vnx(over dt)>_n>_c,std,<<Vny(over dt)>_n>_c,std\n')    
+        with open(self.dtMeanNeighsVelsFile,'w+') as dtNeighs:
+            dtNeighs.write('mcs,<<Vnx(over dt)>_n>_c,std,<<Vny(over dt)>_n>_c,std\n')  
         
+        #file with all the mean neighbor vel needs a header with lengh = # of cells
+        headerForFullNVels = 'mcs,'
+        for cell in self.cellList:
+            headerForFullNVels+='<Vn>,'
+        headerForFullNVels+='\n'
+        
+        with open(self.dtNeighsVelsFileX, 'w+') as nvx:
+            nvx.write(headerForFullNVels)
+        with open(self.dtNeighsVelsFileY, 'w+') as nvy:
+            nvy.write(headerForFullNVels)
+        # self.dtNeighsVelsFileY, self.formatFullNVels
         
     def writeData(self,mcs):
         #mean total velocity 
@@ -200,7 +214,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             ivf.write('%i,%f,%f,%f,%f\n'%(mcs, mivx,eivx, mivy,eivy))
 #         self.instVelFile = os.path.join(self.saveLoc,'meanInstantVelocity.dat')
 #         self.dtVelFile = os.path.join(self.saveLoc,'meanDeltaTVelocity.dat')
-#         self.dtNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity.dat')
+#         self.dtMeanNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity.dat')
         if mcs>self.deltaTime:
             
             with open(self.dtVelFile, 'a+') as tvf:
@@ -212,7 +226,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 
                 tvf.write('%i,%f,%f,%f,%f\n'%(mcs, mtvx,etvx, mtvy,etvy))
             
-            with open(self.dtNeighsVelsFile,'a+') as tnvf:
+            with open(self.dtMeanNeighsVelsFile,'a+') as tnvf:
                 mtvnx = np.mean(dtNeighsVelsX)
                 etvnx = np.std(dtNeighsVelsX)
                 
@@ -220,7 +234,18 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 etvny = np.std(dtNeighsVelsX)
                 
                 tnvf.write('%i,%f,%f,%f,%f\n'%(mcs,mtvnx,etvnx,mtvny,etvny))
-        
+            # self.dtNeighsVelsFileY, self.formatFullNVels
+            with open(self.dtNeighsVelsFileX,'a+') as tnvxf:
+                tnvxf.write('%i,'%(mcs))
+                for v in dtNeighsVelsX:
+                    tnvxf.write('%f,'%(v))
+                tnvxf.write('\n')
+            with open(self.dtNeighsVelsFileY,'a+') as tnvyf:
+                tnvyf.write('%i,'%(mcs))
+                for v in dtNeighsVelsY:
+                    tnvyf.write('%f,'%(v))
+                tnvyf.write('\n')    
+            
     def positionTracking(self,mcs,cur_Cell):
         self.positionX = cur_Cell.dict['positionX']
         self.positionY = cur_Cell.dict['positionY']
@@ -289,6 +314,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         return neigVx, neigVy
         
     def completeForce(self,cell): # F = a * V + b * <Vn> - d * F(t-dt)
+        #need to vectorize this, make it neater
         cellVx = cell.dict['velocityX_deltaT']
         cellVy = cell.dict['velocityY_deltaT']
         
@@ -309,17 +335,26 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         cell.dict['previousForceX'] = self.forceModulus*np.cos(cell.dict['forceAngle']) 
         cell.dict['previousForceY'] = self.forceModulus*np.sin(cell.dict['forceAngle'])  
     
-    def simpleForce(self,cCell): # d orientation /dt = -A orientation + (1-A) velocity
-        #self.deltaTime
+    def simpleForce(self,cCell): # d orientation /dt = -A orientation + (1-A) velocity + noise
+        #orientation is a vector
         dt = 1 #this calculation will happen every mcs
+        
+        #velocity vector (normalized)
         v = np.array([cCell.dict['velocityX_deltaT'],cCell.dict['velocityY_deltaT']])
         normV = np.linalg.norm(v)
         v = v/normV
+        
+        #noise vector (normalized)
+        nv = np.random.normal(size=2)
+        normn = np.linalg.norm(nv)
+        nv = nv/normn
+        
+        # -A orientation + (1-A) velocity
         oneAlpha = 1- self.alphaBoids
         variation = - self.alphaBoids * cCell.dict['orientation'] + oneAlpha*v
         
-        #orientation is a vector
-        cCell.dict['orientation'] += dt*variation
+        #new orientation (normalized)
+        cCell.dict['orientation'] += dt*variation + self.noiseBoids * nv
         normOrient = np.linalg.norm(cCell.dict['orientation'])
         cCell.dict['orientation'] = cCell.dict['orientation']/normOrient
         
