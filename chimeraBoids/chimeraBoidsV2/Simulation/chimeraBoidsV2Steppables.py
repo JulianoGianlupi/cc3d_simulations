@@ -8,6 +8,7 @@ import sys
 import numpy as np
 import os
 
+global G_repetitionNumber_G
 
 global G_targetVolume_G
 global G_lambdaVolume_G
@@ -18,6 +19,10 @@ global G_alphaBoids_G
 global G_betaBoids_G
 global G_gammaBoids_G
 global G_noise_G
+
+#repeat
+G_repetitionNumber_G = -1 
+#it's supposed to give the copy number, so if it's bnegative it's wrong
 
 
 #parameter scan variables
@@ -133,18 +138,38 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
     def createWritingLoc(self):
         #write location
+        #instead of writig in ./parameterScan/<iteration>/Simulation/<whatever>
+        #I'm writing in ./parameterScan/data/<dir name based on parameters>
+        #the iteration # will be suffixed to the name of the data file
+        fileDir = os.path.dirname(os.path.abspath(__file__))
         
-        self.saveLoc = os.path.dirname(os.path.abspath(__file__))
-        self.saveLoc = os.path.join(self.saveLoc,'data')
+        cc3dDir, temp = os.path.split(fileDir)
+        pScanDir, temp = os.path.split(cc3dDir)
+        
+        dataDir = os.path.join(pScanDir,'data')
+        
+        if not os.path.exists(dataDir):
+            os.makedirs(dataDir)
+        ###
+        #CHANGE THE NAME BASED ON TYPE OF SIMULATION
+        #(SIMPLE FORCE, COMPLETE FORCE...)
+        ###
+        saveDirName = ( 'aB_' + str(self.alphaBoids) +
+                        '_nB_' + str(self.noiseBoids))
+        self.saveLoc = os.path.join(dataDir,saveDirName)
         if not os.path.exists(self.saveLoc):
             os.makedirs(self.saveLoc)
+#         self.saveLoc = os.path.dirname(os.path.abspath(__file__))
+#         self.saveLoc = os.path.join(self.saveLoc,'data')
+#         if not os.path.exists(self.saveLoc):
+#             os.makedirs(self.saveLoc)
+        #str(G_repetitionNumber_G)
+        self.instVelFile = os.path.join(self.saveLoc,'meanInstantVelocity_'+str(G_repetitionNumber_G)+'.dat')
+        self.dtVelFile = os.path.join(self.saveLoc,'meanDeltaTVelocity_'+str(G_repetitionNumber_G)+'.dat')
         
-        self.instVelFile = os.path.join(self.saveLoc,'meanInstantVelocity.dat')
-        self.dtVelFile = os.path.join(self.saveLoc,'meanDeltaTVelocity.dat')
-        
-        self.dtMeanNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity.dat')
-        self.dtNeighsVelsFileX = os.path.join(self.saveLoc,'deltaTNeigsVelocityX.dat')
-        self.dtNeighsVelsFileY = os.path.join(self.saveLoc,'deltaTNeigsVelocityY.dat')
+        self.dtMeanNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity_'+str(G_repetitionNumber_G)+'.dat')
+        self.dtNeighsVelsFileX = os.path.join(self.saveLoc,'deltaTNeigsVelocityX_'+str(G_repetitionNumber_G)+'.dat')
+        self.dtNeighsVelsFileY = os.path.join(self.saveLoc,'deltaTNeigsVelocityY_'+str(G_repetitionNumber_G)+'.dat')
         
         #writing the parameters
         with open(os.path.join(self.saveLoc,'parameters.dat'),'w+') as paramFile:

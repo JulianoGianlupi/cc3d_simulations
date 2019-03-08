@@ -2,5 +2,5 @@
    <XMLScript Type="XMLScript">Simulation/chimeraBoidsV2.xml</XMLScript>
    <PythonScript Type="PythonScript">Simulation/chimeraBoidsV2.py</PythonScript>
    <Resource Type="Python">Simulation/chimeraBoidsV2Steppables.py</Resource>
-  <!-- <ParameterScan Type="ParameterScan">Simulation/ParameterScanSpecs.xml</ParameterScan> -->
+   <ParameterScan Type="ParameterScan">Simulation/ParameterScanSpecs.xml</ParameterScan> 
 </Simulation>
