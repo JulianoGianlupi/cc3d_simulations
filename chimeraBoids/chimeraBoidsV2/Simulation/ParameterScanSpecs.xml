@@ -1,7 +1,7 @@
 <ParameterScan version="3.7.0">
    <OutputDirectory>chimeraBoidsV2_ParameterScan</OutputDirectory>
    <ParameterList Resource="Simulation/chimeraBoidsV2Steppables.py">
-      <Parameter CurrentIteration="3" Name="G_repetitionNumber_G" Type="PYTHON_GLOBAL" ValueType="int">
+      <Parameter CurrentIteration="2" Name="G_repetitionNumber_G" Type="PYTHON_GLOBAL" ValueType="int">
          <Values>1,2,3,4,5</Values>
       </Parameter>
       <Parameter CurrentIteration="0" Name="G_targetVolume_G" Type="PYTHON_GLOBAL" ValueType="float">
@@ -16,7 +16,7 @@
       <Parameter CurrentIteration="0" Name="G_deltaTime_G" Type="PYTHON_GLOBAL" ValueType="int">
          <Values>10</Values>
       </Parameter>
-      <Parameter CurrentIteration="1" Name="G_alphaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
+      <Parameter CurrentIteration="2" Name="G_alphaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
          <Values>0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,0.99,1.0</Values>
       </Parameter>
       <Parameter CurrentIteration="0" Name="G_betaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">

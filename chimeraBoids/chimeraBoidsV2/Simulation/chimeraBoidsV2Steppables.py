@@ -19,6 +19,7 @@ global G_alphaBoids_G
 global G_betaBoids_G
 global G_gammaBoids_G
 global G_noise_G
+global G_density_G
 
 #repeat
 G_repetitionNumber_G = -1 
@@ -30,11 +31,13 @@ G_targetVolume_G = 64.
 G_lambdaVolume_G = 8.
 G_forceModulus_G = -20 #speeds are tipically 1/100 of force.
 G_deltaTime_G = 10
+G_density_G = 0.15
 
 G_alphaBoids_G = .1#5.5
 G_betaBoids_G = 1.5
 G_gammaBoids_G = .1
 G_noise_G = .1
+
 
 
 
@@ -62,11 +65,14 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         # any code in the start function runs before MCS=0
         
         
+        
         #constants
         self.targetVolume = G_targetVolume_G
         self.lambdaVolume = G_lambdaVolume_G
         self.forceModulus = G_forceModulus_G
         self.deltaTime = G_deltaTime_G
+        
+        self.density = G_density_G
         
         #boids parameters
         self.alphaBoids = G_alphaBoids_G
@@ -80,6 +86,16 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.usedClusterIDs = set([0])#I think that to avoid possible errors it's best if the set is not
 #                                   #empty
         self.currentIDs = set([0])
+        
+        
+        #seeding the space
+#         density = numberOfCells*self.targetVolume/(self.dim.x*self.dim.y*self.dim.z)
+        
+        numberOfCells = self.density * (self.dim.x*self.dim.y*self.dim.z)/self.targetVolume
+        self.seedTheSpace(numberOfCells)
+        
+        
+        
         #assigning parameters
         for cell in self.cellList:
             if cell:
@@ -132,6 +148,28 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 cell.dict['color'] = None
                 
                 
+    
+    def seedTheSpace(self,numberOfCells):
+        if len(self.cellList) > 0:
+            print 'space already seeded'
+            return
+        dimX = self.dim.x
+        dimY = self.dim.y
+        dimZ = self.dim.z
+        while numberOfCells > 0:
+            x = np.random.randint(int(.01*dimX),int(.99*dimX))
+            y = np.random.randint(int(.01*dimY),int(.99*dimY))
+            #z = np.random.randint(int(.1*dimZ),int(.9*dimZ))
+            z = 0
+            pt = CompuCell.Point3D(x,y,z)
+            posCell = self.cellField.get(pt) 
+            if not posCell: #is medium
+                newCell = self.potts.createCellG(pt)
+                newCell.type = self.BOIDSA
+                print 'new cell @ ', pt
+                numberOfCells -= 1
+        return
+    
     def selectForce(self,cell):
         #self.completeForce(cell)
         self.simpleForce(cell)
@@ -155,7 +193,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         #(SIMPLE FORCE, COMPLETE FORCE...)
         ###
         saveDirName = ( 'aB_' + str(self.alphaBoids) +
-                        '_nB_' + str(self.noiseBoids))
+                        '_nB_' + str(self.noiseBoids)+
+                        '_dens_' + str(self.density))
         self.saveLoc = os.path.join(dataDir,saveDirName)
         if not os.path.exists(self.saveLoc):
             os.makedirs(self.saveLoc)
@@ -180,7 +219,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                             '\n alphaBoids =' + str(self.alphaBoids) +
                             '\n betaBoids = ' + str(self.betaBoids) +
                             '\n gammaBoids = ' + str(self.gammaBoids) +
-                            '\n noiseBoids = ' + str(self.noiseBoids))
+                            '\n noiseBoids = ' + str(self.noiseBoids)+
+                            '\n density = '+str(self.density))
         #writig the headers
         with open(self.instVelFile,'w+') as instVel:
             instVel.write('mcs,<Vx(instant)>,std,<Vy(instant)>,std\n')

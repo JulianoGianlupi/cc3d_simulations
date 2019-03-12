@@ -12,3 +12,4 @@ chimeraBoids/chimeraBoids/Simulation/chimeraBoidsSteppables.pyc
 *.sqlite
 *.png
 >>>>>>> master
+*.dat

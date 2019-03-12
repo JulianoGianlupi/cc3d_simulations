@@ -60,7 +60,7 @@
 
 
 <!--   <Steppable Type="UniformInitializer">   -->
-<!--      <Region>  --> -->
+<!--      <Region>  --> 
 <!--         <BoxMin x="120" y="51" z="0"/>   -->
 <!--         <BoxMax x="136" y="204" z="1"/>   -->
 <!--         <Gap>0</Gap>   -->
@@ -70,13 +70,13 @@
 <!--   </Steppable>  -->
 
    
-      <Steppable Type="BlobInitializer">   
-         <Region>   -->
-            <Center x="127" y="127" z="0"/>   
-            <Radius>100</Radius>   
-            <Gap>5</Gap>   
-            <Width>8</Width>   
-            <Types>boidsA</Types>   
-         </Region>   
-      </Steppable>  
+<!--       <Steppable Type="BlobInitializer">    -->
+<!--          <Region>    -->
+<!--             <Center x="127" y="127" z="0"/>    -->
+<!--             <Radius>100</Radius>    -->
+<!--             <Gap>5</Gap>    -->
+<!--             <Width>8</Width>    -->
+<!--             <Types>boidsA</Types>    -->
+<!--          </Region>    -->
+<!--       </Steppable>   -->
 </CompuCell3D>
