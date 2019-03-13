@@ -44,7 +44,7 @@
       <!-- Specification of adhesion energies -->
       <Energy Type1="Medium" Type2="Medium">10.0</Energy>
       <Energy Type1="Medium" Type2="boidsA">10.0</Energy>
-      <Energy Type1="boidsA" Type2="boidsA">20.0</Energy>
+      <Energy Type1="boidsA" Type2="boidsA">22.0</Energy>
       <NeighborOrder>3</NeighborOrder>
    </Plugin>
    

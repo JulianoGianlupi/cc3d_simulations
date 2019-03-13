@@ -31,7 +31,7 @@ G_targetVolume_G = 64.
 G_lambdaVolume_G = 8.
 G_forceModulus_G = -20 #speeds are tipically 1/100 of force.
 G_deltaTime_G = 10
-G_density_G = 0.15
+G_density_G = 0.20
 
 G_alphaBoids_G = .1#5.5
 G_betaBoids_G = 1.5
@@ -167,6 +167,9 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 newCell = self.potts.createCellG(pt)
                 newCell.type = self.BOIDSA
                 print 'new cell @ ', pt
+    
+                self.cellField.set(pt,newCell) # to create an extension of that cell
+                self.cellField[pt.x-3:pt.x+4,pt.y-3:pt.y+4,0]=newCell
                 numberOfCells -= 1
         return
     
@@ -192,8 +195,13 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         #CHANGE THE NAME BASED ON TYPE OF SIMULATION
         #(SIMPLE FORCE, COMPLETE FORCE...)
         ###
+        
+        self.contactEnergy = float(self.getXMLElementValue(
+                            ['Plugin', 'Name', 'Contact'], ['Energy', 'Type1', 'boidsA', 'Type2', 'boidsA']))    
+        
         saveDirName = ( 'aB_' + str(self.alphaBoids) +
                         '_nB_' + str(self.noiseBoids)+
+                        '_J_'+str(self.contactEnergy)+
                         '_dens_' + str(self.density))
         self.saveLoc = os.path.join(dataDir,saveDirName)
         if not os.path.exists(self.saveLoc):
@@ -209,6 +217,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.dtMeanNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity_'+str(G_repetitionNumber_G)+'.dat')
         self.dtNeighsVelsFileX = os.path.join(self.saveLoc,'deltaTNeigsVelocityX_'+str(G_repetitionNumber_G)+'.dat')
         self.dtNeighsVelsFileY = os.path.join(self.saveLoc,'deltaTNeigsVelocityY_'+str(G_repetitionNumber_G)+'.dat')
+        self.orderParamFile = os.path.join(self.saveLoc,'orderParameter_'+str(G_repetitionNumber_G)+'.dat')
         
         #writing the parameters
         with open(os.path.join(self.saveLoc,'parameters.dat'),'w+') as paramFile:
@@ -228,6 +237,10 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             dtVel.write('mcs,<Vx(over dt)>,std,<Vy(over dt)>,std\n')
         with open(self.dtMeanNeighsVelsFile,'w+') as dtNeighs:
             dtNeighs.write('mcs,<<Vnx(over dt)>_n>_c,std,<<Vny(over dt)>_n>_c,std\n')  
+        
+        with open(self.orderParamFile,'w+') as opf:
+            opf.write('mcs, sum(v/|v|)/N')
+        
         
         #file with all the mean neighbor vel needs a header with lengh = # of cells
         headerForFullNVels = 'mcs,'
@@ -253,6 +266,10 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         dtNeighsVelsX = []
         dtNeighsVelsY = []
         
+        
+#         orderParam = np.zeros(2)
+        orderParamX=[]
+        orderParamY=[]
         for cell in self.cellList:
             instVelsX.append(cell.dict['velocityX_instant'])
             instVelsY.append(cell.dict['velocityY_instant'])
@@ -266,8 +283,33 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 dtVelsX.append(cell.dict['velocityX_deltaT'])
                 dtVelsY.append(cell.dict['velocityY_deltaT'])
                 
+                vc = np.array([cell.dict['velocityX_deltaT'],cell.dict['velocityY_deltaT']])
+                normVC = np.linalg.norm(vc)
+                if normVC!=0:
+                    orderParamX.append(cell.dict['velocityX_deltaT']/normVC)
+                    orderParamY.append(cell.dict['velocityY_deltaT']/normVC)
+#                     orderParam += vc/np.linalg.norm(vc)
+                else:
+                    orderParamX.append(0)
+                    orderParamY.append(0)
+                
                 dtNeighsVelsX.append(cell.dict['mean_neig_velX'])
                 dtNeighsVelsY.append(cell.dict['mean_neig_velY'])
+        
+        orderParamX = np.mean(orderParamX)
+        orderParamX_std = np.std(orderParamX)
+        
+        orderParamY = np.mean(orderParamY)
+        orderParamY_std = np.std(orderParamY)
+        
+        
+        
+        orderParam = np.linalg.norm((orderParamX,orderParamY))
+        
+        
+        
+        
+        
         
         with open(self.instVelFile, 'a+') as ivf:
             mivx = np.mean(instVelsX)
@@ -310,6 +352,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 for v in dtNeighsVelsY:
                     tnvyf.write('%f,'%(v))
                 tnvyf.write('\n')    
+            with open(self.orderParamFile,'a+') as opf:
+                opf.write('%i,%f'%(mcs,orderParam))
             
     def positionTracking(self,mcs,cur_Cell):
         self.positionX = cur_Cell.dict['positionX']
@@ -575,7 +619,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             
             if mcs>self.deltaTime:
                 self.vectorTVelocityField[cCell] = [cCell.dict['velocityX_deltaT'], cCell.dict['velocityY_deltaT'], 0]
-                self.vectorForceField[cCell] = [cCell.dict['previousForceX'], cCell.dict['previousForceY'], 0]
+                self.vectorForceField[cCell] = [-cCell.dict['previousForceX'], -cCell.dict['previousForceY'], 0]
         
 #         self.vectorTVelocityField = self.createVectorFieldCellLevelPy('dt_Velocity')
         
@@ -613,7 +657,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             self.assignClusterIDs(cell)
             self.positionTracking(mcs,cell)
             
-            
+            if mcs == 5:
+                cell.lambdaVolume = self.lambdaVolume
             
             if mcs > self.deltaTime:
                 vx = ( cell.dict['positionX'][-1] - cell.dict['positionX'][-self.deltaTime-1] )
