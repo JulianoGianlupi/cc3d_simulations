@@ -1,0 +1,5 @@
+<Simulation version="3.6.2">
+   <XMLScript Type="XMLScript">Simulation/diffusion_through_cell_wall.xml</XMLScript>
+   <PythonScript Type="PythonScript">Simulation/diffusion_through_cell_wall.py</PythonScript>
+   <Resource Type="Python">Simulation/diffusion_through_cell_wallSteppables.py</Resource>
+</Simulation>

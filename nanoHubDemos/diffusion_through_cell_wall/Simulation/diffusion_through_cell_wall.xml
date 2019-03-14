@@ -1,0 +1,142 @@
+<CompuCell3D Revision="20181205" Version="3.7.9">
+   
+<!--    <Potts> -->
+      
+<!--       <Dimensions x="2048" y="2048" z="1"/> -->
+<!--       <Steps>100000</Steps> -->
+<!--       <Temperature>10.0</Temperature> -->
+<!--       <NeighborOrder>2</NeighborOrder> -->
+<!--    </Potts> -->
+
+<Potts>
+   
+   
+   <Dimensions x="1024" y="1024" z="1"/>
+   <Steps>100000</Steps>
+   <Temperature>10.0</Temperature>
+   <NeighborOrder>2</NeighborOrder>
+   
+<!--    <LatticeType>Hexagonal</LatticeType> -->
+</Potts>
+
+<Metadata>
+   <NumberOfProcessors>8</NumberOfProcessors>
+</Metadata>
+
+
+
+   
+   <Plugin Name="CellType">
+      
+      <!-- Listing all cell types in the simulation -->
+      <CellType TypeId="0" TypeName="Medium"/>
+      <CellType TypeId="1" TypeName="Cell"/>
+      <CellType Freeze="" TypeId="2" TypeName="Boundary"/>
+      <CellType Freeze="" TypeId="3" TypeName="Source"/>
+      <CellType Freeze="" TypeId="4" TypeName="Sink"/>
+   </Plugin>
+   
+   <Plugin Name="Volume"/>
+   
+   <Plugin Name="CenterOfMass">
+      
+      <!-- Module tracking center of mass of each cell -->
+   </Plugin>
+   
+   <Plugin Name="Contact">
+      <!-- Specification of adhesion energies -->
+      <Energy Type1="Medium" Type2="Medium">10.0</Energy>
+      <Energy Type1="Medium" Type2="Cell">10.0</Energy>
+      <Energy Type1="Medium" Type2="Boundary">10.0</Energy>
+      <Energy Type1="Medium" Type2="Source">10.0</Energy>
+      <Energy Type1="Medium" Type2="Sink">10.0</Energy>
+      <Energy Type1="Cell" Type2="Cell">10.0</Energy>
+      <Energy Type1="Cell" Type2="Boundary">10.0</Energy>
+      <Energy Type1="Cell" Type2="Source">10.0</Energy>
+      <Energy Type1="Cell" Type2="Sink">10.0</Energy>
+      <Energy Type1="Boundary" Type2="Boundary">10.0</Energy>
+      <Energy Type1="Boundary" Type2="Source">10.0</Energy>
+      <Energy Type1="Boundary" Type2="Sink">10.0</Energy>
+      <Energy Type1="Source" Type2="Source">10.0</Energy>
+      <Energy Type1="Source" Type2="Sink">10.0</Energy>
+      <Energy Type1="Sink" Type2="Sink">10.0</Energy>
+      <NeighborOrder>3</NeighborOrder>
+   </Plugin>
+   
+   <Plugin Name="Secretion">
+      
+      <!-- Specification of secretion properties of select cell types. -->
+      <!-- You may repeat Field element for each chemical field declared in the PDE solvers -->
+      <!-- Specification of secretion properties of individual cells can be done in Python -->
+      <Field Name="oxigen">
+         <ConstantConcentration Type="Sink">0.0</ConstantConcentration>
+         <ConstantConcentration Type="Source">10.0</ConstantConcentration>
+      </Field>
+   </Plugin>
+   
+   <Steppable Type="DiffusionSolverFE">
+      
+      <!-- Specification of PDE solvers -->
+      <DiffusionField Name="oxigen">
+         <DiffusionData>
+            <FieldName>oxigen</FieldName>
+            <!-- l = 2000 | 4*E6 = D/lamb | D = 4E6 lamb -->
+            <GlobalDiffusionConstant>10</GlobalDiffusionConstant>
+            <GlobalDecayConstant>1e-05</GlobalDecayConstant>
+            <!-- Additional options are: -->
+            <!-- <InitialConcentrationExpression>x*y</InitialConcentrationExpression> -->
+            <!-- <ConcentrationFileName>INITIAL CONCENTRATION FIELD - typically a file with path Simulation/NAME_OF_THE_FILE.txt</ConcentrationFileName> -->
+            <DiffusionCoefficient CellType="Cell">5</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Boundary">1</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Source">10</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Sink">10</DiffusionCoefficient>
+            <DecayCoefficient CellType="Cell">0.0001</DecayCoefficient>
+            <DecayCoefficient CellType="Boundary">0</DecayCoefficient>
+            <DecayCoefficient CellType="Source">0.0001</DecayCoefficient>
+            <DecayCoefficient CellType="Sink">0.0001</DecayCoefficient>
+         </DiffusionData>
+         <SecretionData>
+            <!-- When secretion is defined inside DissufionSolverFE all secretion 
+            constants are scaled automaticaly to account for the extra calls to the 
+            diffusion step when handling large diffusion constants -->
+            
+            <!-- Uniform secretion Definition -->
+<!--             <Secretion Type="Cell">0.1</Secretion> -->
+<!--             <Secretion Type="Boundary">0.1</Secretion> -->
+<!--             <Secretion Type="Source">0.1</Secretion> -->
+<!--             <Secretion Type="Sink">0.1</Secretion> -->
+            <!-- <SecretionOnContact SecreteOnContactWith="Cell,Boundary,Source,Sink" Type="Sink">0.2</SecretionOnContact> -->
+            <ConstantConcentration Type="Sink">0</ConstantConcentration>
+           <ConstantConcentration Type="Source">50</ConstantConcentration> 
+         </SecretionData>
+         <BoundaryConditions>
+            <Plane Axis="X">
+<!--                <ConstantValue PlanePosition="Min" Value="10.0"/> -->
+<!--                <ConstantValue PlanePosition="Max" Value="5.0"/> -->
+               <!-- Other options are (examples): -->
+                <Periodic/> 
+               <!-- <ConstantDerivative PlanePosition="Min" Value="10.0"/> -->
+            </Plane>
+            <Plane Axis="Y">
+<!--                <ConstantDerivative PlanePosition="Min" Value="10.0"/> -->
+<!--                <ConstantDerivative PlanePosition="Max" Value="5.0"/> -->
+               <!-- Other options are (examples): -->
+                <Periodic/> 
+               <!-- <ConstantValue PlanePosition="Min" Value="10.0"/> -->
+            </Plane>
+         </BoundaryConditions>
+      </DiffusionField>
+   </Steppable>
+   
+<!--    <Steppable Type="BlobInitializer"> -->
+      
+     
+<!--       <Region> -->
+<!--          <Center x="1024" y="1024" z="0"/> -->
+<!--          <Radius>409</Radius> -->
+<!--          <Gap>0</Gap> -->
+<!--          <Width>5</Width> -->
+<!--          <Types>Cell,Boundary,Source,Sink</Types> -->
+<!--       </Region> -->
+<!--    </Steppable> -->
+</CompuCell3D>
