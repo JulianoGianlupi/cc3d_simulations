@@ -49,6 +49,19 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
         #initiating extra fields
         
+#         self.scalarAngleField = self.createScalarFieldCellLevelPy('angle')
+        
+#         self.vectorIVelocityField = self.createVectorFieldCellLevelPy('Instant_Velocity')
+#         self.vectorTVelocityField = self.createVectorFieldCellLevelPy('dt_Velocity')
+        
+#         self.vectorForceField = self.createVectorFieldCellLevelPy("Force")
+        
+#         self.scalarClusterIDfield = self.createScalarFieldCellLevelPy("Cluster_ID")
+        #self.init_fields()
+        pass
+        
+        
+    def init_fields(self):
         self.scalarAngleField = self.createScalarFieldCellLevelPy('angle')
         
         self.vectorIVelocityField = self.createVectorFieldCellLevelPy('Instant_Velocity')
@@ -57,10 +70,6 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.vectorForceField = self.createVectorFieldCellLevelPy("Force")
         
         self.scalarClusterIDfield = self.createScalarFieldCellLevelPy("Cluster_ID")
-        
-        
-        
-        
     def start(self):
         # any code in the start function runs before MCS=0
         
@@ -170,12 +179,21 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
     
                 self.cellField.set(pt,newCell) # to create an extension of that cell
                 self.cellField[pt.x-3:pt.x+4,pt.y-3:pt.y+4,0]=newCell
+                #print type(self.getCellNeighborDataList(newCell))
                 numberOfCells -= 1
         return
     
     def selectForce(self,cell):
         #self.completeForce(cell)
         self.simpleForce(cell)
+        
+    
+    def count_neighbors(self,cCell):
+        n = 0
+        for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cCell):
+            if neighbor:
+                n+=1
+        return n
         
     def createWritingLoc(self):
         #write location
@@ -393,12 +411,20 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         #list of neighbours' velocities
         neigVxList = np.array([])
         neigVyList = np.array([])
-        
-        if len(self.getCellNeighborDataList(cur_Cell)) <=1:
+        #for whatever reason len(self.getCellNeighborDataList()) doesn't work on karst....
+        numberNeighs = self.count_neighbors(cur_Cell)
+        if numberNeighs <1:
             #no neighbors, return 0. (medium is counted as neighbor, so <=1 not ==0)
             cur_Cell.dict['mean_neig_velX'] = 0
             cur_Cell.dict['mean_neig_velY'] = 0
             return 0, 0
+        
+        #KEEP! AS THIS IS THE PROPER WAY, GODDAMN KARST
+#         if len(self.getCellNeighborDataList(cur_Cell)) <=1:
+#             #no neighbors, return 0. (medium is counted as neighbor, so <=1 not ==0)
+#             cur_Cell.dict['mean_neig_velX'] = 0
+#             cur_Cell.dict['mean_neig_velY'] = 0
+#             return 0, 0
         
         
         for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cur_Cell):
@@ -476,12 +502,22 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
     
     
     def assignClusterIDs(self,curr_Cell):
+        #print type(self.getCellNeighborDataList(curr_Cell))
         #print len(self.getCellNeighborDataList(curr_Cell))
-        if len(self.getCellNeighborDataList(curr_Cell)) <= 1: #medium is counted!!! 
+        #for whatever reason len(self.getCellNeighborDataList()) doesn't work on karst....
+        
+        numberNeighs = self.count_neighbors(curr_Cell)
+        if numberNeighs < 1: 
 
             curr_Cell.dict['clusterID'] = None
 
             return
+        #KEEP! AS THIS IS THE PROPER WAY, GODDAMN KARST
+#         if len(self.getCellNeighborDataList(curr_Cell)) <= 1: #medium is counted!!! 
+
+#             curr_Cell.dict['clusterID'] = None
+
+#             return
         
         neigsIDs = []
         if curr_Cell.dict['clusterID'] != None:
@@ -718,7 +754,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.coloringByID(inUseClusterIDs)
         self.currentIDs = set(inUseClusterIDs)
         #updating extra fields
-        self.updateFields(mcs)
+        #self.updateFields(mcs)
         
         
 

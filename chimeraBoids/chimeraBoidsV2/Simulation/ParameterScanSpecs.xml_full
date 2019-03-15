@@ -1,8 +1,8 @@
 <ParameterScan version="3.7.0">
-   <OutputDirectory>paramScan</OutputDirectory>
+   <OutputDirectory>/N/u/jferrari/Karst/CC3DWorkspace/simpleForce_boids</OutputDirectory>
    <ParameterList Resource="Simulation/chimeraBoidsV2Steppables.py">
       <Parameter CurrentIteration="0" Name="G_repetitionNumber_G" Type="PYTHON_GLOBAL" ValueType="int">
-         <Values>1</Values>
+         <Values>1,2,3,4,5</Values>
       </Parameter>
       <Parameter CurrentIteration="0" Name="G_targetVolume_G" Type="PYTHON_GLOBAL" ValueType="float">
          <Values>64.0</Values>
@@ -16,8 +16,8 @@
       <Parameter CurrentIteration="0" Name="G_deltaTime_G" Type="PYTHON_GLOBAL" ValueType="int">
          <Values>10</Values>
       </Parameter>
-      <Parameter CurrentIteration="0" Name="G_alphaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
-         <Values>0.9</Values>
+      <Parameter CurrentIteration="2" Name="G_alphaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
+         <Values>0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,0.99,1.0</Values>
       </Parameter>
       <Parameter CurrentIteration="0" Name="G_betaBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
          <Values>1.5</Values>
@@ -26,13 +26,13 @@
          <Values>0.5</Values>
       </Parameter>
       <Parameter CurrentIteration="0" Name="G_noiseBoids_G" Type="PYTHON_GLOBAL" ValueType="float">
-         <Values>0.01</Values>
+         <Values>0.01,0.05,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,0.95,0.99,1.0</Values>
       </Parameter>
    </ParameterList>
    <ParameterList Resource="Simulation/chimeraBoidsV2.xml">
       <Parameter CurrentIteration="0" Name="Energy" Type="XML_CDATA" ValueType="float">
          [['CompuCell3D','Revision','20180722','Version','3.7.8'],['Plugin','Name','Contact'],['Energy','Type1','boidsA','Type2','boidsA']]
-         <Values>22.0</Values>
+         <Values>5.0,22.0,30.0</Values>
       </Parameter>
    </ParameterList>
 </ParameterScan>
