@@ -10,87 +10,145 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
         self.wallThickness = 8
         self.borderSideLenght = 128-8
         
+        self.relaxTime = 50
+        
     def start(self):
         # any code in the start function runs before MCS=0
-        self.brickGrid()
+        #selecting grid type (hex/brick)
+        self.selectGrid(type = 'hex')
         
-        pt = CompuCell.Point3D(55,55,0)
+        #create a source
+        pt = CompuCell.Point3D(self.dim.x-5,5,0)
         newSource = self.potts.createCellG(pt)
         newSource.type = self.SOURCE
-        self.cellField[pt.x-25:pt.x+2,
-                       pt.y-25:pt.y+2,
+        self.cellField[int(pt.x-2):pt.x,
+                       int(pt.y-2):pt.y,
                        0]=newSource
+        #create a sink
+        pt = CompuCell.Point3D(self.dim.x-5,self.dim.y-5,0)
+        newSink = self.potts.createCellG(pt)
+        newSink.type = self.SINK
+        self.cellField[int(pt.x-2):pt.x,
+                       int(pt.y-2):pt.y,
+                       0]=newSink
         
         
-        #hex grid:
-        
-#         c = self.borderSideLenght + self.wallThickness
-#         initialCenter = (c,c)
-#         center = list(initialCenter)
-#         z=0
-#         for x in range(int(center[0]-self.borderSideLenght),int(center[0]+self.borderSideLenght)):
-#             for y in range(int(center[1]-self.borderSideLenght),int(center[1]+self.borderSideLenght)):
-#                 r = np.sqrt(x**2 + y**2)
-#                 theta = np.arctan2(x,y)
-#                 s = np.sin( theta - (np.pi/3)*np.floor( 1+ 3*theta/np.pi ) )
-#                 h = .5*np.sqrt(3)/s
-                
-#                 if r > h and r <= h + self.wallThickness:
-#                     pt = CompuCell.Point3D(x,y,z)
-#                     newBorder = self.potts.createCellG(pt)
-#                     newBorder.type = self.BOUNDARY
-                
-                
-                
-                
-        
-#         #side wall on the left:
-        
-#         pt = CompuCell.Point3D(int(x- 0.5*self.borderSideLenght),y,z)
-#         newBorder = self.potts.createCellG(pt)
-#         newBorder.type = self.BOUNDARY  #Boundary
-#         self.cellField.set(pt,newBorder) # to create an extension of that cell
-#         self.cellField[pt.x-self.wallThickness:pt.x,
-#                        int(pt.y-0.5*self.borderSideLenght):int(pt.y+0.5*self.borderSideLenght),
-#                        0]=newBorder
-        
-#         #side wall on the right
-#         pt = CompuCell.Point3D(int(x+ 0.5*self.borderSideLenght),y,z)
-#         newBorder = self.potts.createCellG(pt)
-#         newBorder.type = self.BOUNDARY  #Boundary
-#         self.cellField.set(pt,newBorder) # to create an extension of that cell
-#         self.cellField[pt.x:pt.x+self.wallThickness,
-#                        int(pt.y-0.5*self.borderSideLenght):int(pt.y+0.5*self.borderSideLenght),
-#                        0]=newBorder
-        
-#         #top left wall
-#         wallCenter_x = int(center[0] + self.borderSideLenght * np.cos(np.pi*240./180.))
-#         wallCenter_y = int(center[1] + self.borderSideLenght * np.sin(np.pi*240./180.))
-        
-#         pt = CompuCell.Point3D(wallCenter_x,wallCenter_y,z)
-#         newBorder = self.potts.createCellG(pt)
-#         newBorder.type = self.BOUNDARY  #Boundary
-        
-#         z=0
-#         hex_x = []
-#         hex_y = []
-#         for i in range(6):
-#             deg = 60 * i - 30
-#             theta = deg * np.pi/180
-#             x = center[0] + self.borderSideLenght * np.cos(theta)
-#             y = center[1] + self.borderSideLenght * np.sin(theta)
-#             hex_x.append(x)
-#             hex_y.append(y)
-        
-#         for i,p in enumerate(hex_x):
-#             xp = hex_x[i-1]
-#             yp = hex_y[i-1]
-            
-#             xc = hex_x[i]
-#             yc = hex_y[i] 
+    def selectGrid(self,type = 'brick'):
+        if type == 'brick':
+            self.brickGrid()
+        elif type == 'hex':
+            self.hexGrid() 
+        else:
+            raise Exception('Not a valid grid type.\n Select type = "hex" or type = "brick"')
+            self.stopSimulation()
             
             
-        
+    def hexGrid(self):
+        c = self.borderSideLenght + self.wallThickness
+        initialCenter = (c,c)
+        center = list(initialCenter)
+        z=int(0)
+        i=1
+        while center[1] + self.borderSideLenght + self.wallThickness < self.dim.y:
+            while center[0] + self.borderSideLenght + self.wallThickness < self.dim.x:
+                x = center[0]
+                y = center[1]
+                pt = CompuCell.Point3D(x,y,z)
+                newCell = self.potts.createCellG(pt)
+                newCell.type = self.CELL
+                newCell.targetVolume = 1.5*np.sqrt(3)*self.borderSideLenght**2
+                newCell.lambdaVolume = 50
+                self.cellField[int(pt.x-0.6*self.borderSideLenght):int(pt.x+0.6*self.borderSideLenght),
+                               int(pt.y-0.6*self.borderSideLenght):int(pt.y+0.6*self.borderSideLenght),
+                               0]=newCell
+                #top/bottom left wall
+                x0 = int(self.borderSideLenght * np.cos(np.pi*150./180.))        
+                a = (1-np.sin(np.pi*150/180))/np.cos(np.pi*150./180.)
+                b = self.borderSideLenght * np.sin(np.pi*150./180.)
+                xThick = self.wallThickness*np.cos(np.pi*60./180.)
+                yThick = self.wallThickness*np.sin(np.pi*120./180.)
+                for xi in range(x0,0):
+                    #print xi
+                    x = int(center[0]+xi-xThick)
+                    yi =( b - a * (xi - x0))
+                    #print yi
+                    y = int(center[1]+yi)
+                    pt = CompuCell.Point3D(x,y,z)
+                    #print pt
+                    newBorder = self.potts.createCellG(pt)
+                    newBorder.type = self.BOUNDARY
+                    self.cellField.set(pt,newBorder) # to create an extension of that cell
+                    self.cellField[pt.x:int(pt.x+xThick),
+                                   pt.y:int(pt.y+yThick),
+                                   0]=newBorder
+                    y= int(center[1]-yi)
+                    pt = CompuCell.Point3D(x,y,z)
+                    newBorder = self.potts.createCellG(pt)
+                    newBorder.type = self.BOUNDARY
+                    self.cellField.set(pt,newBorder) # to create an extension of that cell
+                    self.cellField[pt.x:int(pt.x+xThick),
+                                   pt.y:int(pt.y+yThick),
+                                   0]=newBorder
+                #top/bottom right wall
+                x0 = 0
+                xf = int(self.borderSideLenght * np.cos(np.pi*30./180.))
+                a = (np.sin(np.pi*30./180.) -1)/np.cos(np.pi*30./180.)
+                xThick = self.wallThickness*np.cos(np.pi*60./180.)
+                yThick = self.wallThickness*np.sin(np.pi*60./180.)
+                for xi in range(x0,xf):
+                    x = int(center[0] + xi)
+                    yi = self.borderSideLenght + a *xi
+                    y = int(center[1] + yi)
+                    pt = CompuCell.Point3D(x,y,z)
+                    newBorder = self.potts.createCellG(pt)
+                    newBorder.type = self.BOUNDARY
+                    self.cellField.set(pt,newBorder) # to create an extension of that cell
+                    self.cellField[pt.x:int(pt.x + xThick),
+                                   pt.y:int(pt.y + yThick),
+                                   pt.z] = newBorder
+                    
+                    y= int(center[1]-yi)
+                    pt = CompuCell.Point3D(x,y,z)
+                    newBorder = self.potts.createCellG(pt)
+                    newBorder.type = self.BOUNDARY
+                    self.cellField.set(pt,newBorder) # to create an extension of that cell
+                    self.cellField[pt.x:int(pt.x+xThick),
+                                   pt.y:int(pt.y+yThick),
+                                   0]=newBorder
+                
+                #righ side wall
+                
+                x0 = self.borderSideLenght*np.cos(np.pi*330./180.)
+                y0 = self.borderSideLenght*np.sin(np.pi*330./180.)
+                
+                x = int(center[0]+x0)
+                y = int(center[1]+y0)
+                
+                pt = CompuCell.Point3D(x,y,z)
+                newBorder = self.potts.createCellG(pt)
+                newBorder.type = self.BOUNDARY
+                self.cellField.set(pt,newBorder)
+                self.cellField.set(pt,newBorder)
+                self.cellField[pt.x:int(pt.x+self.wallThickness),
+                               pt.y:int(pt.y+self.borderSideLenght+self.wallThickness),
+                               0]=newBorder
+                
+                #left side wall
+                x = int(center[0]-x0)
+                pt = CompuCell.Point3D(x,y,z)
+                newBorder = self.potts.createCellG(pt)
+                newBorder.type = self.BOUNDARY
+                self.cellField.set(pt,newBorder)
+                self.cellField.set(pt,newBorder)
+                self.cellField[int(pt.x-self.wallThickness):pt.x,
+                               pt.y:int(pt.y+self.borderSideLenght+self.wallThickness),
+                               0]=newBorder
+                
+                center[0] += int(2*x0 + self.wallThickness)
+            center[1] += int(1.5*self.borderSideLenght + self.wallThickness)
+            center[0] = int(initialCenter[0] + (x0+0.5*self.wallThickness)*(i%2))
+            i+=1
+    
     def brickGrid(self):
         c = self.borderSideLenght + self.wallThickness
         initialCenter = (c,c)
@@ -160,6 +218,9 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
     
     def step(self,mcs):        
         #type here the code that will run every _frequency MCS
+        if mcs == self.relaxTime:
+            for cell in self.cellListByType(self.CELL):
+                cell.lambdaVolume = 8
         pass
     def finish(self):
         # Finish Function gets called after the last MCS

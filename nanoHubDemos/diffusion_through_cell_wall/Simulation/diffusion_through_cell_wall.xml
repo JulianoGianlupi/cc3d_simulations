@@ -16,7 +16,7 @@
    <Temperature>10.0</Temperature>
    <NeighborOrder>2</NeighborOrder>
    
-<!--    <LatticeType>Hexagonal</LatticeType> -->
+    <LatticeType>Hexagonal</LatticeType> 
 </Potts>
 
 <Metadata>
