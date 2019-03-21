@@ -187,8 +187,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         return
     
     def selectForce(self,cell):
-        #self.completeForce(cell)
-        self.simpleForce(cell)
+        self.completeForce(cell)
+        #self.simpleForce(cell)
         
     
     def count_neighbors(self,cCell):
@@ -499,6 +499,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         #getting mean normalized velocities of neighbours
         neigV = np.zeros(2)
         neigV = self.getNormNeighboursMeanVelocity(cell)
+        neigV = np.array(neigV)
         
         #previous force normalized
         pForce = np.array([cell.dict['previousForceX']/self.forceModulus,
@@ -506,12 +507,12 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
         #noise vector (normalized)
         noisevec = np.random.normal(size=2)
-        normn = np.linalg.norm(nv)
-        noisevec = nv/normn
+        normn = np.linalg.norm(noisevec)
+        noisevec = noisevec/normn
         
         #new force
         force = np.zeros(2)
-        force = self.alphaBoids*V + self.betaBoids*neigV - self.gammaBoids*pForce + self.noiseBoids * noisevec
+        force[:] = self.alphaBoids*V[:] + self.betaBoids*neigV[:] - self.gammaBoids*pForce[:] + self.noiseBoids * noisevec[:]
         normForce = np.linalg.norm(force)
         force = force / normForce #also normalized
         
