@@ -11,7 +11,10 @@
       <Boundary_y>Periodic</Boundary_y>
 <!--       <RandomSeed>582155538</RandomSeed> -->
    </Potts>
-   
+   <Metadata>
+   <DebugOutputFrequency>100</DebugOutputFrequency>
+</Metadata>
+
    
    
    <Plugin Name="CellType">

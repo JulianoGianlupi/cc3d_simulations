@@ -57,7 +57,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
 #         self.vectorForceField = self.createVectorFieldCellLevelPy("Force")
         
 #         self.scalarClusterIDfield = self.createScalarFieldCellLevelPy("Cluster_ID")
-        #self.init_fields()
+        self.init_fields()
         pass
         
         
@@ -129,6 +129,9 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 cell.dict['velocityX_deltaT'] = 0.
                 cell.dict['velocityY_deltaT'] = 0.
                 
+                cell.dict['norm_velocityX_deltaT'] = 0.
+                cell.dict['norm_velocityY_deltaT'] = 0.
+                
                 cell.dict['mean_neig_velX'] = 0
                 cell.dict['mean_neig_velY'] = 0
                 
@@ -175,7 +178,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             if not posCell: #is medium
                 newCell = self.potts.createCellG(pt)
                 newCell.type = self.BOIDSA
-                print 'new cell @ ', pt
+                #print 'new cell @ ', pt
     
                 self.cellField.set(pt,newCell) # to create an extension of that cell
                 self.cellField[pt.x-3:pt.x+4,pt.y-3:pt.y+4,0]=newCell
@@ -414,7 +417,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         #for whatever reason len(self.getCellNeighborDataList()) doesn't work on karst....
         numberNeighs = self.count_neighbors(cur_Cell)
         if numberNeighs <1:
-            #no neighbors, return 0. (medium is counted as neighbor, so <=1 not ==0)
+            #no neighbors, return 0. 
             cur_Cell.dict['mean_neig_velX'] = 0
             cur_Cell.dict['mean_neig_velY'] = 0
             return 0, 0
@@ -447,8 +450,83 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             neigVy = 0
         
         return neigVx, neigVy
+    
+    def getNormNeighboursMeanVelocity(self,cur_Cell):
+        #list of neighbours' velocities
         
-    def completeForce(self,cell): # F = a * V + b * <Vn> - d * F(t-dt)
+        #for whatever reason len(self.getCellNeighborDataList()) doesn't work on karst....
+        numberNeighs = self.count_neighbors(cur_Cell)
+        if numberNeighs <1:
+            #no neighbors, return 0. 
+            return 0, 0
+        
+        neigVxList = np.array([])
+        neigVyList = np.array([])
+        #KEEP! AS THIS IS THE PROPER WAY, GODDAMN KARST
+#         if len(self.getCellNeighborDataList(cur_Cell)) <=1:
+#             #no neighbors, return 0. (medium is counted as neighbor, so <=1 not ==0)
+#             cur_Cell.dict['mean_neig_velX'] = 0
+#             cur_Cell.dict['mean_neig_velY'] = 0
+#             return 0, 0
+        
+        
+        for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cur_Cell):
+            if neighbor:
+                neigVxList = np.append(neigVxList,neighbor.dict['norm_velocityX_deltaT'])
+                neigVyList = np.append(neigVyList,neighbor.dict['norm_velocityY_deltaT']) 
+        
+        #taking care of empty lists, just in case something goes wrong
+        if len(neigVxList):
+            neigVx = np.mean(neigVxList)
+        else:  
+            neigVx = 0
+        if len(neigVyList):
+            neigVy = np.mean(neigVyList)
+        else:
+            neigVy = 0
+        
+        return neigVx, neigVy
+    
+    
+    
+    def completeForce(self,cell): # F = a * V + b * <Vn> - d * F(t-dt)  all unitary vectors
+        
+        #normalized velocity
+        cellVx = cell.dict['norm_velocityX_deltaT']
+        cellVy = cell.dict['norm_velocityY_deltaT']
+        V = np.array([cellVx,cellVy])
+        
+        #getting mean normalized velocities of neighbours
+        neigV = np.zeros(2)
+        neigV = self.getNormNeighboursMeanVelocity(cell)
+        
+        #previous force normalized
+        pForce = np.array([cell.dict['previousForceX']/self.forceModulus,
+                           cell.dict['previousForceY']/self.forceModulus])
+        
+        #noise vector (normalized)
+        noisevec = np.random.normal(size=2)
+        normn = np.linalg.norm(nv)
+        noisevec = nv/normn
+        
+        #new force
+        force = np.zeros(2)
+        force = self.alphaBoids*V + self.betaBoids*neigV - self.gammaBoids*pForce + self.noiseBoids * noisevec
+        normForce = np.linalg.norm(force)
+        force = force / normForce #also normalized
+        
+        #updating the force
+        cell.lambdaVecX = self.forceModulus*force[0] 
+        cell.lambdaVecY = self.forceModulus*force[1]  
+        
+        #updating cell dictionaries
+        cell.dict['forceAngle'] = np.arctan2(force[0],force[1])
+        cell.dict['previousForceX'] = self.forceModulus*force[0]
+        cell.dict['previousForceY'] = self.forceModulus*force[1]
+        
+        
+        
+    def completeForce_old(self,cell): # F = a * V + b * <Vn> - d * F(t-dt)
         #need to vectorize this, make it neater
         cellVx = cell.dict['velocityX_deltaT']
         cellVy = cell.dict['velocityY_deltaT']
@@ -457,11 +535,11 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         neigVx, neigVy = self.getNeighboursMeanVelocity(cell)
         
         #calculating new force in x and y
-        forceX = self.alphaBoids*cellVx + self.betaBoids*neigVx - self.noiseBoids*cell.dict['previousForceX']
-        forceY = self.alphaBoids*cellVy + self.betaBoids*neigVy - self.noiseBoids*cell.dict['previousForceY']
+        forceX = self.alphaBoids*cellVx + self.betaBoids*neigVx - self.gammaBoids*cell.dict['previousForceX']
+        forceY = self.alphaBoids*cellVy + self.betaBoids*neigVy - self.gammaBoids*cell.dict['previousForceY']
         
         #getting the angle of new force
-        cell.dict['forceAngle'] = np.arctan2(forceY,forceX) + self.gammaBoids * np.random.uniform(-np.pi,np.pi)
+        cell.dict['forceAngle'] = np.arctan2(forceY,forceX) + self.noiseBoids * np.random.uniform(-np.pi,np.pi)
         
         #aplying standard force with new angle
         cell.lambdaVecX = self.forceModulus*np.cos(cell.dict['forceAngle']) 
@@ -533,7 +611,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             #self.currentIDs
             
             
-            print 'new ID:', newID
+            #print 'new ID:', newID
             self.usedClusterIDs.add(newID)
             curr_Cell.dict['clusterID'] = newID
             for neighbor, commonSurfaceArea in self.getCellNeighborDataList(curr_Cell):
@@ -627,7 +705,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             maxID = max(inUseClusterIDs)
             inUseClusterIDs = sorted(list(set(inUseClusterIDs)))
             interval = float(maxID)/len(inUseClusterIDs)
-            print maxID, len(inUseClusterIDs), interval
+            #print maxID, len(inUseClusterIDs), interval
             for cell in self.cellList:
 #                 print color
                 for i, id in enumerate(inUseClusterIDs):
@@ -705,6 +783,14 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 
                 cell.dict['velocityX_deltaT'] = vx
                 cell.dict['velocityY_deltaT'] = vy
+                
+                v = np.array([vx,vy])
+                nv = np.linalg.norm(v)
+                v = v/nv
+                
+                cell.dict['norm_velocityX_deltaT'] = v[0]
+                cell.dict['norm_velocityY_deltaT'] = v[1]
+                
         
         for cell in self.cellList:
             self.reassingDoubleIDs(cell,self.equivalentIDs)
@@ -754,15 +840,15 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.coloringByID(inUseClusterIDs)
         self.currentIDs = set(inUseClusterIDs)
         #updating extra fields
-        #self.updateFields(mcs)
+        self.updateFields(mcs)
         
         
 
         #################################################
         #cleanup
-        print '!!!!!!!!!!!!'
-        print self.currentIDs
-        print '!!!!!!!!!!!!'
+        #print '!!!!!!!!!!!!'
+        #print self.currentIDs
+        #print '!!!!!!!!!!!!'
         self.oldIDs = self.currentIDs.copy()
         self.usedClusterIDs = None
         self.usedClusterIDs = set([0])
