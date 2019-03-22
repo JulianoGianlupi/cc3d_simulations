@@ -232,13 +232,13 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
 #         if not os.path.exists(self.saveLoc):
 #             os.makedirs(self.saveLoc)
         #str(G_repetitionNumber_G)
-        self.instVelFile = os.path.join(self.saveLoc,'meanInstantVelocity_'+str(G_repetitionNumber_G)+'.dat')
-        self.dtVelFile = os.path.join(self.saveLoc,'meanDeltaTVelocity_'+str(G_repetitionNumber_G)+'.dat')
+        self.instVelFile_name = os.path.join(self.saveLoc,'meanInstantVelocity_'+str(G_repetitionNumber_G)+'.dat')
+        self.dtVelFile_name = os.path.join(self.saveLoc,'meanDeltaTVelocity_'+str(G_repetitionNumber_G)+'.dat')
         
-        self.dtMeanNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity_'+str(G_repetitionNumber_G)+'.dat')
-        self.dtNeighsVelsFileX = os.path.join(self.saveLoc,'deltaTNeigsVelocityX_'+str(G_repetitionNumber_G)+'.dat')
-        self.dtNeighsVelsFileY = os.path.join(self.saveLoc,'deltaTNeigsVelocityY_'+str(G_repetitionNumber_G)+'.dat')
-        self.orderParamFile = os.path.join(self.saveLoc,'orderParameter_'+str(G_repetitionNumber_G)+'.dat')
+        self.dtMeanNeighsVelsFile_name = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity_'+str(G_repetitionNumber_G)+'.dat')
+        self.dtNeighsVelsFileX_name = os.path.join(self.saveLoc,'deltaTNeigsVelocityX_'+str(G_repetitionNumber_G)+'.dat')
+        self.dtNeighsVelsFileY_name = os.path.join(self.saveLoc,'deltaTNeigsVelocityY_'+str(G_repetitionNumber_G)+'.dat')
+        self.orderParamFile_name = os.path.join(self.saveLoc,'orderParameter_'+str(G_repetitionNumber_G)+'.dat')
         
         #writing the parameters
         with open(os.path.join(self.saveLoc,'parameters.dat'),'w+') as paramFile:
@@ -251,16 +251,30 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                             '\n gammaBoids = ' + str(self.gammaBoids) +
                             '\n noiseBoids = ' + str(self.noiseBoids)+
                             '\n density = '+str(self.density))
-        #writig the headers
-        with open(self.instVelFile,'w+') as instVel:
-            instVel.write('mcs,<Vx(instant)>,std,<Vy(instant)>,std\n')
-        with open(self.dtVelFile,'w+') as dtVel:
-            dtVel.write('mcs,<Vx(over dt)>,std,<Vy(over dt)>,std\n')
-        with open(self.dtMeanNeighsVelsFile,'w+') as dtNeighs:
-            dtNeighs.write('mcs,<<Vnx(over dt)>_n>_c,std,<<Vny(over dt)>_n>_c,std\n')  
+        #oppening files / writig the headers
         
-        with open(self.orderParamFile,'w+') as opf:
-            opf.write('mcs, sum(v/|v|)/N')
+        self.instVelFile = open(self.instVelFile_name,'w+')
+        self.instVelFile.write('mcs,<Vx(instant)>,std,<Vy(instant)>,std\n')
+        
+        self.dtVelFile = open(self.dtVelFile_name,'w+')
+        self.dtVelFile.write('mcs,<Vx(over dt)>,std,<Vy(over dt)>,std\n')
+        
+        self.dtMeanNeighsVelsFile = open(self.dtMeanNeighsVelsFile_name,'w+')
+        self.dtMeanNeighsVelsFile.write('mcs,<<Vnx(over dt)>_n>_c,std,<<Vny(over dt)>_n>_c,std\n')
+        
+        self.orderParamFile = open(self.orderParamFile_name,'w+')
+        self.orderParamFile.write('mcs, sum(v/|v|)/N')
+        
+        
+#         with open(self.instVelFile,'w+') as instVel:
+#             instVel.write('mcs,<Vx(instant)>,std,<Vy(instant)>,std\n')
+#         with open(self.dtVelFile,'w+') as dtVel:
+#             dtVel.write('mcs,<Vx(over dt)>,std,<Vy(over dt)>,std\n')
+#         with open(self.dtMeanNeighsVelsFile,'w+') as dtNeighs:
+#             dtNeighs.write('mcs,<<Vnx(over dt)>_n>_c,std,<<Vny(over dt)>_n>_c,std\n')  
+        
+#         with open(self.orderParamFile,'w+') as opf:
+#             opf.write('mcs, sum(v/|v|)/N')
         
         
         #file with all the mean neighbor vel needs a header with lengh = # of cells
@@ -269,13 +283,46 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             headerForFullNVels+='<Vn>,'
         headerForFullNVels+='\n'
         
-        with open(self.dtNeighsVelsFileX, 'w+') as nvx:
-            nvx.write(headerForFullNVels)
-        with open(self.dtNeighsVelsFileY, 'w+') as nvy:
-            nvy.write(headerForFullNVels)
+        self.dtNeighsVelsFileX = open(self.dtNeighsVelsFileX_name,'w+')
+        self.dtNeighsVelsFileX.write(headerForFullNVels)
+        
+        self.dtNeighsVelsFileY = open(self.dtNeighsVelsFileY_name,'w+')
+        self.dtNeighsVelsFileY.write(headerForFullNVels)
+        
+        
+        
+#         with open(self.dtNeighsVelsFileX, 'w+') as nvx:
+#             nvx.write(headerForFullNVels)
+#         with open(self.dtNeighsVelsFileY, 'w+') as nvy:
+#             nvy.write(headerForFullNVels)
         # self.dtNeighsVelsFileY, self.formatFullNVels
         
     def writeData(self,mcs):
+        
+        #flushing data every 100mcs
+        
+        if mcs>0 and mcs%100==0:
+            self.instVelFile.flush()
+            os.fsync(self.instVelFile.fileno())
+        
+            self.dtVelFile.flush()
+            os.fsync(self.dtVelFile.fileno())
+            
+            self.dtMeanNeighsVelsFile.flush()
+            os.fsync(self.dtMeanNeighsVelsFile.fileno())
+            
+            self.orderParamFile.flush()
+            os.fsync(self.orderParamFile.fileno())
+            
+            self.dtNeighsVelsFileX.flush()
+            os.fsync(self.dtNeighsVelsFileX.fileno())
+            
+            self.dtNeighsVelsFileY.flush()
+            os.fsync(self.dtNeighsVelsFileY.fileno())
+            #os.fsync()
+        
+        
+        
         #mean total velocity 
         
         instVelsX = []
@@ -328,53 +375,95 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         orderParam = np.linalg.norm((orderParamX,orderParamY))
         
         
+        #writting instant velocity
+        mivx = np.mean(instVelsX)
+        eivx = np.std(instVelsX)
         
+        mivy = np.mean(instVelsY)
+        eivy = np.std(instVelsY)
+        self.instVelFile.write('%i,%f,%f,%f,%f\n'%(mcs, mivx,eivx, mivy,eivy))
         
-        
-        
-        with open(self.instVelFile, 'a+') as ivf:
-            mivx = np.mean(instVelsX)
-            eivx = np.std(instVelsX)
+#         with open(self.instVelFile, 'a+') as ivf:
+#             mivx = np.mean(instVelsX)
+#             eivx = np.std(instVelsX)
             
-            mivy = np.mean(instVelsY)
-            eivy = np.std(instVelsY)
+#             mivy = np.mean(instVelsY)
+#             eivy = np.std(instVelsY)
             
-            ivf.write('%i,%f,%f,%f,%f\n'%(mcs, mivx,eivx, mivy,eivy))
+#             ivf.write('%i,%f,%f,%f,%f\n'%(mcs, mivx,eivx, mivy,eivy))
 #         self.instVelFile = os.path.join(self.saveLoc,'meanInstantVelocity.dat')
 #         self.dtVelFile = os.path.join(self.saveLoc,'meanDeltaTVelocity.dat')
 #         self.dtMeanNeighsVelsFile = os.path.join(self.saveLoc,'meanDeltaTNeigsVelocity.dat')
         if mcs>self.deltaTime:
             
-            with open(self.dtVelFile, 'a+') as tvf:
-                mtvx = np.mean(dtVelsX)
-                etvx = np.std(dtVelsX)
-                
-                mtvy = np.mean(dtVelsY)
-                etvy = np.std(dtVelsY)
-                
-                tvf.write('%i,%f,%f,%f,%f\n'%(mcs, mtvx,etvx, mtvy,etvy))
             
-            with open(self.dtMeanNeighsVelsFile,'a+') as tnvf:
-                mtvnx = np.mean(dtNeighsVelsX)
-                etvnx = np.std(dtNeighsVelsX)
+            #writting dt velocity
+            mtvx = np.mean(dtVelsX)
+            etvx = np.std(dtVelsX)
+            
+            mtvy = np.mean(dtVelsY)
+            etvy = np.std(dtVelsY)
+            
+            self.dtVelFile.write('%i,%f,%f,%f,%f\n'%(mcs, mtvx,etvx, mtvy,etvy))
+            
+#             with open(self.dtVelFile, 'a+') as tvf:
+#                 mtvx = np.mean(dtVelsX)
+#                 etvx = np.std(dtVelsX)
                 
-                mtvny = np.mean(dtNeighsVelsX)
-                etvny = np.std(dtNeighsVelsX)
+#                 mtvy = np.mean(dtVelsY)
+#                 etvy = np.std(dtVelsY)
                 
-                tnvf.write('%i,%f,%f,%f,%f\n'%(mcs,mtvnx,etvnx,mtvny,etvny))
+#                 tvf.write('%i,%f,%f,%f,%f\n'%(mcs, mtvx,etvx, mtvy,etvy))
+
+            #writting neighbor mean vel
+            mtvnx = np.mean(dtNeighsVelsX)
+            etvnx = np.std(dtNeighsVelsX)
+            
+            mtvny = np.mean(dtNeighsVelsX)
+            etvny = np.std(dtNeighsVelsX)
+            
+            self.dtMeanNeighsVelsFile.write('%i,%f,%f,%f,%f\n'%(mcs,mtvnx,etvnx,mtvny,etvny))
+            
+            
+            
+#             with open(self.dtMeanNeighsVelsFile,'a+') as tnvf:
+#                 mtvnx = np.mean(dtNeighsVelsX)
+#                 etvnx = np.std(dtNeighsVelsX)
+                
+#                 mtvny = np.mean(dtNeighsVelsX)
+#                 etvny = np.std(dtNeighsVelsX)
+                
+#                 tnvf.write('%i,%f,%f,%f,%f\n'%(mcs,mtvnx,etvnx,mtvny,etvny))
             # self.dtNeighsVelsFileY, self.formatFullNVels
-            with open(self.dtNeighsVelsFileX,'a+') as tnvxf:
-                tnvxf.write('%i,'%(mcs))
-                for v in dtNeighsVelsX:
-                    tnvxf.write('%f,'%(v))
-                tnvxf.write('\n')
-            with open(self.dtNeighsVelsFileY,'a+') as tnvyf:
-                tnvyf.write('%i,'%(mcs))
-                for v in dtNeighsVelsY:
-                    tnvyf.write('%f,'%(v))
-                tnvyf.write('\n')    
-            with open(self.orderParamFile,'a+') as opf:
-                opf.write('%i,%f'%(mcs,orderParam))
+            
+            #writting all of neigh vels
+            self.dtNeighsVelsFileX.write('%i,'%(mcs))
+            for v in dtNeighsVelsX:
+                self.dtNeighsVelsFileX.write('%f,'%(v))
+            self.dtNeighsVelsFileX.write('\n')
+            
+            self.dtNeighsVelsFileY.write('%i,'%(mcs))
+            for v in dtNeighsVelsY:
+                self.dtNeighsVelsFileY.write('%f,'%(v))
+            self.dtNeighsVelsFileY.write('\n')  
+            
+            
+#             with open(self.dtNeighsVelsFileX,'a+') as tnvxf:
+#                 tnvxf.write('%i,'%(mcs))
+#                 for v in dtNeighsVelsX:
+#                     tnvxf.write('%f,'%(v))
+#                 tnvxf.write('\n')
+#             with open(self.dtNeighsVelsFileY,'a+') as tnvyf:
+#                 tnvyf.write('%i,'%(mcs))
+#                 for v in dtNeighsVelsY:
+#                     tnvyf.write('%f,'%(v))
+#                 tnvyf.write('\n')    
+
+            #writting the order parameter
+            self.orderParamFile.write('%i,%f'%(mcs,orderParam))
+            
+#             with open(self.orderParamFile,'a+') as opf:
+#                 opf.write('%i,%f'%(mcs,orderParam))
             
     def positionTracking(self,mcs,cur_Cell):
         self.positionX = cur_Cell.dict['positionX']
@@ -866,5 +955,15 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
     def finish(self):
         # Finish Function gets called after the last MCS
-        pass
+        self.instVelFile.close()
+        
+        self.dtVelFile.close()
+        
+        self.dtMeanNeighsVelsFile.close()
+        
+        self.orderParamFile.close()
+        
+        self.dtNeighsVelsFileX.close()
+        
+        self.dtNeighsVelsFileY.close()
         
