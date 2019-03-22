@@ -187,8 +187,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         return
     
     def selectForce(self,cell):
-        self.completeForce(cell)
-        #self.simpleForce(cell)
+        #self.completeForce(cell)
+        self.simpleForce(cell)
         
     
     def count_neighbors(self,cCell):
