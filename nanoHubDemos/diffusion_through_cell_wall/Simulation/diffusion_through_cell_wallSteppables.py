@@ -7,8 +7,8 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
     def __init__(self,_simulator,_frequency=1):
         SteppableBasePy.__init__(self,_simulator,_frequency)
         
-        self.wallThickness = 8
-        self.borderSideLenght = 128-8
+        self.wallThickness = 3
+        self.borderSideLenght = 32-3
         
         self.relaxTime = 50
         
@@ -18,7 +18,7 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
         self.selectGrid(type = 'hex')
         
         #create a source
-        pt = CompuCell.Point3D(self.dim.x-5,5,0)
+        pt = CompuCell.Point3D(int(0.9*self.dim.x),105,0)
         newSource = self.potts.createCellG(pt)
         newSource.type = self.SOURCE
         self.cellField[int(pt.x-2):pt.x,

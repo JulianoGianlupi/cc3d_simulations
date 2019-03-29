@@ -11,7 +11,7 @@
 <Potts>
    
    
-   <Dimensions x="1024" y="1024" z="1"/>
+   <Dimensions x="512" y="512" z="1"/>
    <Steps>100000</Steps>
    <Temperature>10.0</Temperature>
    <NeighborOrder>2</NeighborOrder>
@@ -80,16 +80,16 @@
       <DiffusionField Name="oxigen">
          <DiffusionData>
             <FieldName>oxigen</FieldName>
-            <!-- l = 2000 | 4*E6 = D/lamb | D = 4E6 lamb -->
-            <GlobalDiffusionConstant>10</GlobalDiffusionConstant>
+            <!-- l = 1000 | E6 = D/lamb | D = E6 lamb -->
+            <GlobalDiffusionConstant>100</GlobalDiffusionConstant>
             <GlobalDecayConstant>1e-05</GlobalDecayConstant>
             <!-- Additional options are: -->
             <!-- <InitialConcentrationExpression>x*y</InitialConcentrationExpression> -->
             <!-- <ConcentrationFileName>INITIAL CONCENTRATION FIELD - typically a file with path Simulation/NAME_OF_THE_FILE.txt</ConcentrationFileName> -->
-            <DiffusionCoefficient CellType="Cell">5</DiffusionCoefficient>
-            <DiffusionCoefficient CellType="Boundary">1</DiffusionCoefficient>
-            <DiffusionCoefficient CellType="Source">10</DiffusionCoefficient>
-            <DiffusionCoefficient CellType="Sink">10</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Cell">50</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Boundary">0</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Source">100</DiffusionCoefficient>
+            <DiffusionCoefficient CellType="Sink">100</DiffusionCoefficient>
             <DecayCoefficient CellType="Cell">0.0001</DecayCoefficient>
             <DecayCoefficient CellType="Boundary">0</DecayCoefficient>
             <DecayCoefficient CellType="Source">0.0001</DecayCoefficient>
