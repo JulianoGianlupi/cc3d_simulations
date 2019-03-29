@@ -49,6 +49,9 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
         center = list(initialCenter)
         z=int(0)
         i=1
+        pt =CompuCell.Point3D(0,0,0)
+        newBorder = self.potts.createCellG(pt)
+        newBorder.type = self.BOUNDARY
         while center[1] + self.borderSideLenght + self.wallThickness < self.dim.y:
             while center[0] + self.borderSideLenght + self.wallThickness < self.dim.x:
                 x = center[0]
@@ -75,20 +78,23 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
                     y = int(center[1]+yi)
                     pt = CompuCell.Point3D(x,y,z)
                     #print pt
-                    newBorder = self.potts.createCellG(pt)
-                    newBorder.type = self.BOUNDARY
+                    #newBorder = self.potts.createCellG(pt)
+                    #newBorder.type = self.BOUNDARY
                     self.cellField.set(pt,newBorder) # to create an extension of that cell
                     self.cellField[pt.x:int(pt.x+xThick),
                                    pt.y:int(pt.y+yThick),
                                    0]=newBorder
                     y= int(center[1]-yi)
                     pt = CompuCell.Point3D(x,y,z)
-                    newBorder = self.potts.createCellG(pt)
-                    newBorder.type = self.BOUNDARY
+                    #newBorder = self.potts.createCellG(pt)
+                    #newBorder.type = self.BOUNDARY
                     self.cellField.set(pt,newBorder) # to create an extension of that cell
                     self.cellField[pt.x:int(pt.x+xThick),
                                    pt.y:int(pt.y+yThick),
                                    0]=newBorder
+                
+                
+                
                 #top/bottom right wall
                 x0 = 0
                 xf = int(self.borderSideLenght * np.cos(np.pi*30./180.))
@@ -100,8 +106,8 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
                     yi = self.borderSideLenght + a *xi
                     y = int(center[1] + yi)
                     pt = CompuCell.Point3D(x,y,z)
-                    newBorder = self.potts.createCellG(pt)
-                    newBorder.type = self.BOUNDARY
+                    #newBorder = self.potts.createCellG(pt)
+                    #newBorder.type = self.BOUNDARY
                     self.cellField.set(pt,newBorder) # to create an extension of that cell
                     self.cellField[pt.x:int(pt.x + xThick),
                                    pt.y:int(pt.y + yThick),
@@ -109,8 +115,8 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
                     
                     y= int(center[1]-yi)
                     pt = CompuCell.Point3D(x,y,z)
-                    newBorder = self.potts.createCellG(pt)
-                    newBorder.type = self.BOUNDARY
+                    #newBorder = self.potts.createCellG(pt)
+                    #newBorder.type = self.BOUNDARY
                     self.cellField.set(pt,newBorder) # to create an extension of that cell
                     self.cellField[pt.x:int(pt.x+xThick),
                                    pt.y:int(pt.y+yThick),
@@ -125,8 +131,8 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
                 y = int(center[1]+y0)
                 
                 pt = CompuCell.Point3D(x,y,z)
-                newBorder = self.potts.createCellG(pt)
-                newBorder.type = self.BOUNDARY
+                #newBorder = self.potts.createCellG(pt)
+                #newBorder.type = self.BOUNDARY
                 self.cellField.set(pt,newBorder)
                 self.cellField.set(pt,newBorder)
                 self.cellField[pt.x:int(pt.x+self.wallThickness),
@@ -136,8 +142,8 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
                 #left side wall
                 x = int(center[0]-x0)
                 pt = CompuCell.Point3D(x,y,z)
-                newBorder = self.potts.createCellG(pt)
-                newBorder.type = self.BOUNDARY
+                #newBorder = self.potts.createCellG(pt)
+                #newBorder.type = self.BOUNDARY
                 self.cellField.set(pt,newBorder)
                 self.cellField.set(pt,newBorder)
                 self.cellField[int(pt.x-self.wallThickness):pt.x,
@@ -148,7 +154,7 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
             center[1] += int(1.5*self.borderSideLenght + self.wallThickness)
             center[0] = int(initialCenter[0] + (x0+0.5*self.wallThickness)*(i%2))
             i+=1
-    
+        
     def brickGrid(self):
         c = self.borderSideLenght + self.wallThickness
         initialCenter = (c,c)
@@ -218,6 +224,29 @@ class diffusion_through_cell_wallSteppable(SteppableBasePy):
     
     def step(self,mcs):        
         #type here the code that will run every _frequency MCS
+        
+        
+#         pixelList = self.getCellBoundaryPixelList(cell)
+#         for boundaryPixelTrackerData in pixelList:
+#             print "pixel of cell id=", cell.id, " type:", cell.type, " = ", boundaryPixelTrackerData.pixel, " number of pixels=", pixelList.numberOfPixels()
+        
+        for cell in self.cellListByType(self.CELL):
+            print cell.id
+            for neighbor, commonSurfaceArea in self.getCellNeighborDataList(cell):
+                if neighbor:
+                    print "neighbor.id", neighbor.id, " commonSurfaceArea=", commonSurfaceArea
+                else:
+                    print "Medium commonSurfaceArea=", commonSurfaceArea
+            
+            
+        #after relaxTime
+        #for each cell iterate the boundary, draw circles around each pixel, find the nearest voxel
+        #that is not boundary and not itself. That will be a pixel-pair, each cell will have a dict of 
+        #pixel-pairs. Also have cell-pairs.
+        #
+        #for the transport, 
+        # d C1/dt = P_channel * (C1-C2)*(P1-P2)
+        # each cell-pair will have a P_channel. The eq above transfers quantity for each pixel-pair
         if mcs == self.relaxTime:
             for cell in self.cellListByType(self.CELL):
                 cell.lambdaVolume = 8

@@ -11,7 +11,7 @@
 <Potts>
    
    
-   <Dimensions x="512" y="512" z="1"/>
+   <Dimensions x="256" y="256" z="1"/>
    <Steps>100000</Steps>
    <Temperature>10.0</Temperature>
    <NeighborOrder>2</NeighborOrder>
@@ -73,7 +73,16 @@
          <ConstantConcentration Type="Source">10.0</ConstantConcentration>
       </Field>
    </Plugin>
+   <Plugin Name="BoundaryPixelTracker">
    
+   <!-- Module tracking boundary pixels of each cell -->
+        <NeighborOrder>6</NeighborOrder>
+    </Plugin>
+<Plugin Name="NeighborTracker">
+   
+   <!-- Module tracking neighboring cells of each cell -->
+</Plugin>
+
    <Steppable Type="DiffusionSolverFE">
       
       <!-- Specification of PDE solvers -->
