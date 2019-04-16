@@ -1,0 +1,11 @@
+<CompuCell3DLatticeData Version="1.0">
+   <Dimensions x="300" y="300" z="1"/>
+   <Lattice Type="Square"/>
+   <Output CoreFileName="Step" Directory="C:\Users\julia\gitHub\cc3d_simulations\nanoHubDemos\diffusion_through_cell_wall\wetFoam_cc3d_04_08_2019_15_33_33\LatticeData" Frequency="1" NumberOfSteps="10000"/>
+   <CellType TypeId="0" TypeName="Medium"/>
+   <CellType TypeId="1" TypeName="Air"/>
+   <CellType TypeId="2" TypeName="Water"/>
+   <Fields>
+      <Field Name="Cell_Field" Type="CellField"/>
+   </Fields>
+</CompuCell3DLatticeData>
