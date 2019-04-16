@@ -104,7 +104,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
 #         density = numberOfCells*self.targetVolume/(self.dim.x*self.dim.y*self.dim.z)
         
         #numberOfCells = self.density * (self.dim.x*self.dim.y*self.dim.z)/self.targetVolume
-        numberOfCells = .15 * (self.dim.x*self.dim.y*self.dim.z)/self.targetVolume
+        numberOfCells = 50
         self.seedTheSpace(numberOfCells)
         
         
