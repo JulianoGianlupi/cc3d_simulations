@@ -104,7 +104,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
 #         density = numberOfCells*self.targetVolume/(self.dim.x*self.dim.y*self.dim.z)
         
         #numberOfCells = self.density * (self.dim.x*self.dim.y*self.dim.z)/self.targetVolume
-        numberOfCells = .15 * (self.dim.x*self.dim.y*self.dim.z)/self.targetVolume
+        numberOfCells = .3 * (self.dim.x*self.dim.y*self.dim.z)/self.targetVolume
         self.seedTheSpace(numberOfCells)
         
         
@@ -271,7 +271,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.dtMeanNeighsVelsFile.write('mcs,<<Vnx(over dt)>_n>_c,std,<<Vny(over dt)>_n>_c,std\n')
         
         self.orderParamFile = open(self.orderParamFile_name,'w+')
-        self.orderParamFile.write('mcs, sum(v/|v|)/N\n')
+        self.orderParamFile.write('mcs, sum(v/|v|)/N')
         
         
 #         with open(self.instVelFile,'w+') as instVel:
@@ -468,7 +468,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
 #                 tnvyf.write('\n')    
 
             #writting the order parameter
-            self.orderParamFile.write('%i,%f\n'%(mcs,orderParam))
+            self.orderParamFile.write('%i,%f'%(mcs,orderParam))
             
 #             with open(self.orderParamFile,'a+') as opf:
 #                 opf.write('%i,%f'%(mcs,orderParam))
