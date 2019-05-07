@@ -191,7 +191,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 self.cellField[pt.x-3:pt.x+4,pt.y-3:pt.y+4,0]=newCell
                 #print type(self.getCellNeighborDataList(newCell))
                 numberOfCells -= 1
-        self.buildWall(self.WALL)
+        #self.buildWall(self.WALL)
         return
     
     def selectForce(self,cell):
