@@ -175,7 +175,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         dimX = self.dim.x
         dimY = self.dim.y
         dimZ = self.dim.z
-        while numberOfCells > 0:
+        while numberOfCells - len(self.cellListByType(self.BOIDSA)) > 0:
             x = np.random.randint(int(.05*dimX),int(.95*dimX))
             y = np.random.randint(int(.05*dimY),int(.95*dimY))
             #z = np.random.randint(int(.1*dimZ),int(.9*dimZ))
@@ -190,7 +190,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 self.cellField.set(pt,newCell) # to create an extension of that cell
                 self.cellField[pt.x-3:pt.x+4,pt.y-3:pt.y+4,0]=newCell
                 #print type(self.getCellNeighborDataList(newCell))
-                numberOfCells -= 1
+                #numberOfCells -= 1
         #self.buildWall(self.WALL)
         return
     
@@ -681,7 +681,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         #print type(self.getCellNeighborDataList(curr_Cell))
         #print len(self.getCellNeighborDataList(curr_Cell))
         #for whatever reason len(self.getCellNeighborDataList()) doesn't work on karst....
-        
+        return
         numberNeighs = self.count_neighbors(curr_Cell)
         if numberNeighs < 1: 
 
@@ -726,7 +726,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             self.equivalentIDs.append(sorted(neigsIDs))
     
     def clusterBreakingDetection(self):
-        
+        return
         ## there's the issue of a cluster breaking in
         ## two clusters, detecting that and spliting the ID.
         ## 
@@ -787,6 +787,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             self.reassingDoubleIDs(cell,self.equivalencyToOld)
     
     def reassingDoubleIDs(self,curr_Cell,eqs):
+        return
         if curr_Cell.dict['clusterID'] == None:
             return#
         for e in eqs:
@@ -797,7 +798,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                         return
     
     def coloringByID(self,inUseClusterIDs):
-        
+        return
         color = 0
         if len(inUseClusterIDs)>0:
             maxID = max(inUseClusterIDs)

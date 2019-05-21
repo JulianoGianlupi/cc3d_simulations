@@ -1,7 +1,7 @@
 <ParameterScan version="3.7.0">
    <OutputDirectory>C:\Users\jferrari\Documents\cc3d_simulations\chimeraBoids\chimeraBoidsV2\chimeraBoidsV2_ParameterScan</OutputDirectory>
    <ParameterList Resource="Simulation/chimeraBoidsV2Steppables.py">
-      <Parameter CurrentIteration="0" Name="G_repetitionNumber_G" Type="PYTHON_GLOBAL" ValueType="int">
+      <Parameter CurrentIteration="2" Name="G_repetitionNumber_G" Type="PYTHON_GLOBAL" ValueType="int">
          <Values>0,1,2,3,4</Values>
       </Parameter>
       <Parameter CurrentIteration="0" Name="G_targetVolume_G" Type="PYTHON_GLOBAL" ValueType="float">
@@ -35,7 +35,7 @@
    <ParameterList Resource="Simulation/chimeraBoidsV2.xml">
       <Parameter CurrentIteration="0" Name="Energy" Type="XML_CDATA" ValueType="float">
          [['CompuCell3D','Revision','20180722','Version','3.7.8'],['Plugin','Name','Contact'],['Energy','Type1','boidsA','Type2','boidsA']]
-         <Values>15,17,18,19,20,21</Values>
+         <Values>15.0,17.0,18.0,19.0,20.0,21.0</Values>
       </Parameter>
    </ParameterList>
 </ParameterScan>
