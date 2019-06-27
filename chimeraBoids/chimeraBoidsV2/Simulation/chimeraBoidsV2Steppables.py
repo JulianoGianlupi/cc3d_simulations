@@ -8,6 +8,8 @@ import sys
 import numpy as np
 import os
 
+from os.path import join as pjoin
+
 global G_repetitionNumber_G
 
 global G_targetVolume_G
@@ -91,8 +93,7 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.betaBoids = G_betaBoids_G
         self.gammaBoids = G_gammaBoids_G
         self.noiseBoids = G_noise_G
-        #create data folder and write initial things
-        self.createWritingLoc()
+        
         
         #set of used cluster IDs
         self.usedClusterIDs = set([0])#I think that to avoid possible errors it's best if the set is not
@@ -107,6 +108,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
         self.seedTheSpace(numberOfCells)
         
+        #create data folder and write initial things
+        self.createWritingLoc()
         
         
         #assigning parameters
@@ -248,6 +251,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.dtNeighsVelsFileY_name = os.path.join(self.saveLoc,'deltaTNeigsVelocityY_'+str(G_repetitionNumber_G)+'.dat')
         self.orderParamFile_name = os.path.join(self.saveLoc,'orderParameter_'+str(G_repetitionNumber_G)+'.dat')
         
+        self.meanVolumeFile_name = os.path.join(self.saveLoc,'meanVolume_'+str(G_repetitionNumber_G)+'.dat')
+        
         #writing the parameters
         with open(os.path.join(self.saveLoc,'parameters.dat'),'w+') as paramFile:
             paramFile.write('targetVolume = '+ str(self.targetVolume) +
@@ -272,6 +277,10 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         
         self.orderParamFile = open(self.orderParamFile_name,'w+')
         self.orderParamFile.write('mcs, sum(v/|v|)/N\n')
+        
+        self.meanVolumeFile = open(self.meanVolumeFile_name,'w+')
+        self.meanVolumeFile.write('mcs,mean volume\n')
+        
         
         
 #         with open(self.instVelFile,'w+') as instVel:
@@ -305,6 +314,21 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
 #             nvy.write(headerForFullNVels)
         # self.dtNeighsVelsFileY, self.formatFullNVels
         
+        
+        ##centers of mass saving
+        self.cm_save_loc = pjoin(self.saveLoc,'centers_of_mass')
+        if not os.path.exists(self.cm_save_loc):
+            os.makedirs(self.cm_save_loc)
+        self.cm_save_loc = pjoin(self.cm_save_loc, 'repeat_'+str(G_repetitionNumber_G))
+        if not os.path.exists(self.cm_save_loc):
+            os.makedirs(self.cm_save_loc)
+        for cell in self.cellList:
+            cm_file_name = pjoin(self.cm_save_loc,'id_'+str(cell.id)+'.dat')
+            cell.dict['center_mass_file'] = open(cm_file_name,'w+')
+            cell.dict['center_mass_file'].write('mcs,xcm,ycm\n')
+        
+        
+        
     def writeData(self,mcs):
         
         #flushing data every 100mcs
@@ -327,7 +351,14 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
             
             self.dtNeighsVelsFileY.flush()
             os.fsync(self.dtNeighsVelsFileY.fileno())
+            
+            self.meanVolumeFile.flush()
+            os.fsync(self.meanVolumeFile.fileno())
+            
             #os.fsync()
+            for cell in self.cellList:
+                cell.dict['center_mass_file'].flush()
+                os.fsync(cell.dict['center_mass_file'].fileno())
         
         
         
@@ -346,9 +377,14 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
 #         orderParam = np.zeros(2)
         orderParamX=[]
         orderParamY=[]
+        
+        volumes = []
         for cell in self.cellList:
+            volumes.append(cell.volume)
             instVelsX.append(cell.dict['velocityX_instant'])
             instVelsY.append(cell.dict['velocityY_instant'])
+            
+            cell.dict['center_mass_file'].write('%i,%f,%f\n'%(mcs,cell.xCOM,cell.yCOM))
             
             if mcs>self.deltaTime:
                 
@@ -371,6 +407,10 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
                 
                 dtNeighsVelsX.append(cell.dict['mean_neig_velX'])
                 dtNeighsVelsY.append(cell.dict['mean_neig_velY'])
+        
+        
+        self.meanVolumeFile.write('%i,%f\n'%(mcs,np.mean(volumes)))
+        
         
         orderParamX = np.mean(orderParamX)
         orderParamX_std = np.std(orderParamX)
@@ -975,4 +1015,8 @@ class chimeraBoidsV2Steppable(SteppableBasePy):
         self.dtNeighsVelsFileX.close()
         
         self.dtNeighsVelsFileY.close()
+        
+        for cell in self.cellList:
+            
+            cell.dict['center_mass_file'].close()
         
